@@ -17,5 +17,11 @@ setup(
             "pytest>=7.0.0",
             "pytest-cov>=4.0.0",
         ],
+
+    },
+    entry_points={
+        'console_scripts': [
+            'pulmo-cristal=pulmo_cristal.cli:main',
+        ],
     },
 )
