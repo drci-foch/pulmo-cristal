@@ -17,15 +17,11 @@ try:
     import camelot.io as camelot
 except ImportError:
     try:
-        # Essai d'importation alternative
         from camelot import io as camelot
     except ImportError:
-        print(
-            "La bibliothèque camelot-py n'est pas installée. Veuillez l'installer avec 'pip install camelot-py[cv]'"
-        )
-        print("Note: Vous aurez aussi besoin de Ghostscript et OpenCV.")
-        sys.exit(1)
-
+        camelot = None
+        print("Warning: camelot-py not installed. HLA extraction will use regex only.")
+        # Don't exit - just continue with limited functionality
 # Local imports
 from .base import BaseExtractor
 
