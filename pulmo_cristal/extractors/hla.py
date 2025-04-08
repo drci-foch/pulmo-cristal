@@ -8,6 +8,7 @@ regex-based fallback approaches.
 
 import re
 import logging
+import sys
 from typing import Dict, Optional, List, Any, Tuple, Union
 from pathlib import Path
 
@@ -16,9 +17,14 @@ try:
     import camelot.io as camelot
 except ImportError:
     try:
+        # Essai d'importation alternative
         from camelot import io as camelot
     except ImportError:
-        camelot = None
+        print(
+            "La bibliothèque camelot-py n'est pas installée. Veuillez l'installer avec 'pip install camelot-py[cv]'"
+        )
+        print("Note: Vous aurez aussi besoin de Ghostscript et OpenCV.")
+        sys.exit(1)
 
 # Local imports
 from .base import BaseExtractor
