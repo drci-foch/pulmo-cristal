@@ -509,6 +509,7 @@ class HLAExtractor(BaseExtractor):
             'C2': 'C2',
             'DR': 'DR1', 'DR1': 'DR1',
             'DR2': 'DR2',
+            'DQA':'DQA',
             'DQ': 'DQB1', 'DQ1': 'DQB1', 'DQB': 'DQB1', 'DQB1': 'DQB1',
             'DQ2': 'DQB2', 'DQB2': 'DQB2',
             'DP': 'DP1', 'DP1': 'DP1',
@@ -578,7 +579,7 @@ class HLAExtractor(BaseExtractor):
         """
         standard_keys = [
             "A1", "A2", "B1", "B2", "C1", "C2", "DR1", "DR2", 
-            "DQB1", "DQB2", "DP1", "DP2"
+            "DQA", "DQB", "DP1", "DP2"
         ]
         
         standardized = HLAData()
