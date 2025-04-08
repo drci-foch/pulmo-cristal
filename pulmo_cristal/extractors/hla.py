@@ -91,7 +91,7 @@ class HLAExtractor(BaseExtractor):
         if camelot is not None:
             try:
                 hla_data = self._extract_hla_with_camelot(pdf_path)
-                if hla_data and len(hla_data) >= 6:  # At least A, B, and DR loci
+                if hla_data and len(hla_data) >= 3:  # At least A, B, and DR loci
                     extraction_status = "OK" 
                     self.log("Successfully extracted HLA data with Camelot")
                 else:
@@ -102,7 +102,7 @@ class HLAExtractor(BaseExtractor):
                 extraction_status = "ERROR_CAMELOT"
         
         # If Camelot failed or is not available, try regex
-        if not hla_data or len(hla_data) < 6:
+        if not hla_data or len(hla_data) < 3:
             self.log("Attempting regex-based HLA extraction")
             
             # We need the text content for regex extraction
