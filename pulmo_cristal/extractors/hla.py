@@ -1,7 +1,7 @@
 """
 HLA Data Extractor Module for pulmo-cristal package.
 
-This module handles the extraction of HLA data
+This module handles the extraction of HLA (Human Leukocyte Antigen) data
 from donor PDF documents, using both table extraction via Camelot and
 regex-based fallback approaches.
 """
@@ -31,7 +31,7 @@ class HLAData(dict):
 
 class HLAExtractor(BaseExtractor):
     """
-    Specialized extractor for HLA data from
+    Specialized extractor for HLA (Human Leukocyte Antigen) data from
     donor PDF documents.
     
     This extractor attempts to find and parse HLA tables in the PDF document.
@@ -49,6 +49,7 @@ class HLAExtractor(BaseExtractor):
         """
         super().__init__(logger=logger)
         self.debug = debug
+        self.text_content = None
         
         # Primary regex pattern for HLA data extraction as fallback
         self.hla_basic_pattern = r"A1\s+A2\s+B1\s+B2\s+C1\s+C2\s+DR1\s+DR2[^\n]*\n\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)"
@@ -60,7 +61,7 @@ class HLAExtractor(BaseExtractor):
         # Table areas to search for HLA data
         # Format: [left, bottom, right, top] in PDF coordinates
         self.table_areas = [
-            "0,100,800,300",    # Primary table area
+            "0,100,800,300",    # Primary table area (as used in original code)
             "0,0,800,400",      # Expanded area if primary fails
             "0,0,800,800",      # Full page if needed
         ]
@@ -84,46 +85,86 @@ class HLAExtractor(BaseExtractor):
         """
         self.log(f"Extracting HLA data from {pdf_path}")
         
+        # First extract the text content - this is important
+        try:
+            from PyPDF2 import PdfReader
+            with open(pdf_path, 'rb') as f:
+                reader = PdfReader(f)
+                self.text_content = ""
+                for page in reader.pages:
+                    self.text_content += page.extract_text() + "\n\n"
+                self.log(f"Extracted {len(self.text_content)} characters of text")
+        except Exception as e:
+            self.log(f"Error extracting text for HLA extraction: {str(e)}", 
+                    level=logging.ERROR)
+            self.text_content = ""
+        
         # Try table extraction first if Camelot is available
         hla_data = {}
         extraction_status = "FAILED"
         
         if camelot is not None:
+            # Try the original table area first that's known to work
             try:
-                hla_data = self._extract_hla_with_camelot(pdf_path)
-                if hla_data and len(hla_data) >= 3:  # At least A, B, and DR loci
-                    extraction_status = "OK" 
-                    self.log("Successfully extracted HLA data with Camelot")
-                else:
-                    self.log("Incomplete HLA data extracted with Camelot", level=logging.WARNING)
+                self.log("Trying to extract HLA data using original table area")
+                tables = camelot.read_pdf(
+                    filepath=pdf_path,
+                    flavor="stream",
+                    pages="1",
+                    table_areas=["0,100,800,300"],
+                )
+                
+                if tables and len(tables) > 0:
+                    hla_data = self._extract_hla_values_from_dataframe(tables)
+                    if hla_data and len(hla_data) >= 3:  # At least A, B, and DR loci
+                        extraction_status = "OK" 
+                        self.log("Successfully extracted HLA data with Camelot")
+                
+                # If first attempt didn't get enough data, try other areas
+                if extraction_status != "OK" and len(hla_data) < 6:
+                    for area in self.table_areas[1:]:  # Skip the first one we already tried
+                        try:
+                            self.log(f"Trying alternative table area: {area}")
+                            tables = camelot.read_pdf(
+                                filepath=pdf_path,
+                                flavor="stream",
+                                pages="1",
+                                table_areas=[area],
+                            )
+                            
+                            if tables and len(tables) > 0:
+                                additional_data = self._extract_hla_values_from_dataframe(tables)
+                                if additional_data:
+                                    self.log(f"Found additional HLA data: {additional_data}")
+                                    # Merge new data with existing data
+                                    for key, value in additional_data.items():
+                                        if key not in hla_data or not hla_data[key]:
+                                            hla_data[key] = value
+                                
+                                # If we now have enough data
+                                if len(hla_data) >= 6:
+                                    extraction_status = "OK"
+                                    break
+                        except Exception as e:
+                            self.log(f"Error with table area {area}: {str(e)}")
+                            # Continue trying other areas
+                            continue
+                
+                # If we have some data but not enough
+                if extraction_status != "OK" and hla_data:
                     extraction_status = "INCOMPLETE"
+                    self.log(f"Incomplete HLA data extracted: {hla_data}")
+            
             except Exception as e:
                 self.log(f"Error during Camelot extraction: {str(e)}", level=logging.ERROR)
                 extraction_status = "ERROR_CAMELOT"
         
         # If Camelot failed or is not available, try regex
-        if not hla_data or len(hla_data) < 3:
+        if not hla_data or len(hla_data) < 6:
             self.log("Attempting regex-based HLA extraction")
             
-            # We need the text content for regex extraction
-            if hasattr(self, 'text_content') and self.text_content:
-                text_content = self.text_content
-            else:
-                # If text wasn't provided, we need to extract it
-                try:
-                    from PyPDF2 import PdfReader
-                    with open(pdf_path, 'rb') as f:
-                        reader = PdfReader(f)
-                        text_content = ""
-                        for page in reader.pages:
-                            text_content += page.extract_text() + "\n\n"
-                except Exception as e:
-                    self.log(f"Error extracting text for regex HLA: {str(e)}", 
-                             level=logging.ERROR)
-                    text_content = ""
-            
             # Try regex extraction
-            regex_hla = self._extract_hla_with_regex(text_content)
+            regex_hla = self._extract_hla_with_regex(self.text_content)
             
             # Merge with any Camelot results, preferring Camelot data
             for key, value in regex_hla.items():
@@ -153,124 +194,140 @@ class HLAExtractor(BaseExtractor):
             
         return final_hla, status
 
-    def _extract_hla_with_camelot(self, pdf_path: str) -> Dict[str, str]:
+    def _extract_hla_values_from_dataframe(self, tables) -> Dict[str, str]:
         """
-        Extract HLA data using Camelot for table detection.
+        Extract HLA values from a Camelot table dataframe.
+        
+        This method uses the same logic as the original DonneurDataExtractor
+        for maximum compatibility with the original code.
         
         Args:
-            pdf_path: Path to the PDF file
+            tables: List of tables extracted by Camelot
             
         Returns:
             Dictionary of HLA values
         """
-        if camelot is None:
-            self.log("Camelot is not available", level=logging.WARNING)
-            return {}
-            
         hla_data = {}
-        
-        # Try each table area in sequence
-        for area in self.table_areas:
-            try:
-                if self.debug:
-                    self.log(f"Trying to extract HLA table with area: {area}")
-                    
-                tables = camelot.read_pdf(
-                    filepath=pdf_path,
-                    flavor="stream",  # "stream" works better for text-based tables
-                    pages="1",        # Typically HLA is on first page
-                    table_areas=[area],
-                )
-                
-                if tables and len(tables) > 0:
-                    # Process each table found
-                    for i, table in enumerate(tables):
-                        if self.debug:
-                            self.log(f"Processing table {i+1}/{len(tables)}")
-                        
-                        # Check if this looks like an HLA table
-                        table_hla = self._process_hla_table(table)
-                        
-                        # If we found HLA data, merge it with existing data
-                        if table_hla:
-                            hla_data.update(table_hla)
-                            
-                            # If we have at least the 8 basic HLA values (A,B,C,DR), stop searching
-                            if all(key in hla_data for key in 
-                                  ["A1", "A2", "B1", "B2", "C1", "C2", "DR1", "DR2"]):
-                                return hla_data
-            
-            except Exception as e:
-                self.log(f"Error extracting HLA with area {area}: {str(e)}", 
-                        level=logging.WARNING)
-                continue
-        
-        return hla_data
+        hla_found = False
 
-    def _process_hla_table(self, table: Any) -> Dict[str, str]:
-        """
-        Process a table to extract HLA data.
-        
-        Args:
-            table: Camelot table object
-            
-        Returns:
-            Dictionary of HLA values
-        """
-        hla_data = {}
-        
-        try:
-            # Convert to DataFrame for easier processing
-            df = table.df if hasattr(table, "df") else table
-            
-            # Look for HLA header row
-            header_row = None
-            data_row = None
-            
-            # First pass: Look for exact HLA headers
-            for row_idx, row in df.iterrows():
-                row_text = " ".join(str(cell) for cell in row)
-                row_text = row_text.lower()
-                
-                # Check if this looks like an HLA header row
-                if any(marker in row_text for marker in 
-                      ["hla", "a1", "a2", "b1", "b2", "dr1", "dr2"]):
-                    header_row = row_idx
-                    # Data row is usually the next row
-                    if row_idx + 1 < len(df):
-                        data_row = row_idx + 1
+        for i, table in enumerate(tables):
+            # Get the DataFrame from the table
+            if hasattr(table, "df"):
+                # Camelot Table objects have a df attribute
+                df = table.df
+            else:
+                # For other table types
+                df = table
+
+            try:
+                # Check if "HLA" is in the headers
+                header_row = None
+                data_row = None
+
+                # Search for HLA header and data rows
+                for row_idx, row in df.iterrows():
+                    row_text = " ".join(str(cell) for cell in row)
+
+                    if "HLA" in row_text and header_row is None:
+                        header_row = row_idx
+                        continue
+
+                    # If we found the header, the next row contains the data
+                    if header_row is not None and data_row is None:
+                        data_row = row_idx
+                        break
+
+                # If we found both header and data rows
+                if header_row is not None and data_row is not None:
+                    # Extract HLA values
+                    header_values = [str(cell).strip() for cell in df.iloc[header_row]]
+                    data_values = [str(cell).strip() for cell in df.iloc[data_row]]
+
+                    if self.debug:
+                        self.log(f"HLA Headers: {header_values}")
+                        self.log(f"HLA Values: {data_values}")
+
+                    # Create a dictionary with HLA values
+                    for j, header in enumerate(header_values):
+                        # Skip empty or irrelevant cells
+                        if j < len(data_values) and header and data_values[j]:
+                            # Handle composite headers (like A1\nA2)
+                            if "\n" in header:
+                                sub_headers = header.split("\n")
+                                for k, sub_header in enumerate(sub_headers):
+                                    if k < len(data_values[j].split("\n")):
+                                        sub_value = data_values[j].split("\n")[k]
+                                        hla_data[sub_header.strip()] = sub_value.strip()
+                                    else:
+                                        hla_data[sub_header.strip()] = ""
+                            else:
+                                hla_data[header] = data_values[j]
+
+                    hla_found = True
                     break
-            
-            # If we found a header and data row
-            if header_row is not None and data_row is not None:
-                headers = [str(cell).strip() for cell in df.iloc[header_row]]
-                data = [str(cell).strip() for cell in df.iloc[data_row]]
-                
-                # Process the headers and data
-                for i, header in enumerate(headers):
-                    if i < len(data):
-                        # Clean up header and data
-                        clean_header = self._clean_hla_header(header)
-                        clean_data = self._clean_hla_value(data[i])
-                        
-                        if clean_header and clean_data:
-                            hla_data[clean_header] = clean_data
-            
-            # Second pass: Try to infer columns if headers aren't clear
-            if not hla_data and len(df) >= 2:
-                # Assume first row is header, second row is data
-                headers = ["A1", "A2", "B1", "B2", "C1", "C2", "DR1", "DR2"]
-                data = [str(cell).strip() for cell in df.iloc[1]]
-                
-                # Only use this if data looks like HLA values (all numeric)
-                if all(self._is_valid_hla_value(val) for val in data[:len(headers)]):
-                    for i, header in enumerate(headers):
-                        if i < len(data):
-                            hla_data[header] = self._clean_hla_value(data[i])
+            except Exception as e:
+                self.log(f"Error analyzing table {i}: {str(e)}", level=logging.WARNING)
+                continue
+
+        # If no HLA value was found, try a different approach
+        if not hla_found:
+            self.log("Attempting alternative HLA extraction...")
+            for i, table in enumerate(tables):
+                if hasattr(table, "df"):
+                    df = table.df
+                else:
+                    df = table
+
+                # Look for "HLA" in all cells
+                for row_idx, row in df.iterrows():
+                    for col_idx, cell in enumerate(row):
+                        if isinstance(cell, str) and "HLA" in cell:
+                            # Find HLA alleles in subsequent rows
+                            if row_idx + 1 < len(df):
+                                # Assume the next row contains HLA data
+                                hla_row = df.iloc[row_idx + 1]
+
+                                # Try to extract basic HLA alleles
+                                try:
+                                    col_names = df.columns.tolist()
+                                    for j, col_name in enumerate(col_names):
+                                        if j < len(hla_row):
+                                            hla_data[f"col_{j}"] = str(hla_row[j]).strip()
+                                except Exception as e:
+                                    self.log(f"Error in alternative extraction: {str(e)}", 
+                                             level=logging.WARNING)
+
+                            hla_found = True
+                            break
+
+                    if hla_found:
+                        break
         
-        except Exception as e:
-            self.log(f"Error processing potential HLA table: {str(e)}", 
-                    level=logging.WARNING)
+        # Clean up generic column names if found
+        cleaned_hla_data = {}
+        common_hla_positions = {
+            "col_0": "A1", "col_1": "A2", 
+            "col_2": "B1", "col_3": "B2",
+            "col_4": "C1", "col_5": "C2",
+            "col_6": "DR1", "col_7": "DR2"
+        }
+        
+        for key, value in hla_data.items():
+            if key.startswith("col_") and key in common_hla_positions:
+                cleaned_key = common_hla_positions[key]
+                cleaned_hla_data[cleaned_key] = value
+            else:
+                # Normalize other headers
+                cleaned_key = self._clean_hla_header(key)
+                if cleaned_key:
+                    cleaned_hla_data[cleaned_key] = value
+        
+        # Merge cleaned data back if any conversions were made
+        if cleaned_hla_data:
+            hla_data.update(cleaned_hla_data)
+        
+        if self.debug:
+            self.log(f"Final HLA data from tables: {hla_data}")
         
         return hla_data
 
@@ -284,12 +341,18 @@ class HLAExtractor(BaseExtractor):
         Returns:
             Dictionary of HLA values
         """
+        if not text:
+            self.log("No text content available for regex extraction", level=logging.WARNING)
+            return {}
+            
         hla_data = {}
         
         # Extract basic HLA (A, B, C, DR)
         try:
+            self.log("Applying basic HLA regex pattern")
             basic_matches = re.findall(self.hla_basic_pattern, text, re.DOTALL)
             if basic_matches and len(basic_matches) > 0:
+                self.log(f"Found basic HLA matches: {basic_matches}")
                 if isinstance(basic_matches[0], tuple) and len(basic_matches[0]) >= 8:
                     values = basic_matches[0]
                     hla_data.update({
@@ -307,8 +370,10 @@ class HLAExtractor(BaseExtractor):
         
         # Extract DQB values
         try:
+            self.log("Applying DQB regex pattern")
             dqb_matches = re.findall(self.dqb_pattern, text, re.DOTALL)
             if dqb_matches and len(dqb_matches) > 0:
+                self.log(f"Found DQB matches: {dqb_matches}")
                 if isinstance(dqb_matches[0], tuple) and len(dqb_matches[0]) >= 2:
                     hla_data.update({
                         "DQB1": self._clean_hla_value(dqb_matches[0][0]),
@@ -319,8 +384,10 @@ class HLAExtractor(BaseExtractor):
         
         # Extract DP values
         try:
+            self.log("Applying DP regex pattern")
             dp_matches = re.findall(self.dp_pattern, text, re.DOTALL)
             if dp_matches and len(dp_matches) > 0:
+                self.log(f"Found DP matches: {dp_matches}")
                 if isinstance(dp_matches[0], tuple) and len(dp_matches[0]) >= 2:
                     hla_data.update({
                         "DP1": self._clean_hla_value(dp_matches[0][0]),
@@ -329,6 +396,31 @@ class HLAExtractor(BaseExtractor):
         except re.error as e:
             self.log(f"Error in DP regex: {str(e)}", level=logging.ERROR)
         
+        # Try additional simpler patterns if main patterns didn't work
+        if not hla_data or len(hla_data) < 3:
+            self.log("Trying simpler patterns")
+            try:
+                # Look for individual HLA values with simpler patterns
+                simple_patterns = {
+                    "A1": r"A1\s*[:=]?\s*(\d+)",
+                    "A2": r"A2\s*[:=]?\s*(\d+)",
+                    "B1": r"B1\s*[:=]?\s*(\d+)",
+                    "B2": r"B2\s*[:=]?\s*(\d+)",
+                    "DR1": r"DR1\s*[:=]?\s*(\d+)",
+                    "DR2": r"DR2\s*[:=]?\s*(\d+)"
+                }
+                
+                for key, pattern in simple_patterns.items():
+                    if key not in hla_data or not hla_data[key]:
+                        matches = re.findall(pattern, text, re.IGNORECASE)
+                        if matches and matches[0]:
+                            hla_data[key] = self._clean_hla_value(matches[0])
+            except Exception as e:
+                self.log(f"Error in simple patterns: {str(e)}", level=logging.WARNING)
+        
+        if self.debug:
+            self.log(f"HLA data from regex: {hla_data}")
+            
         return hla_data
 
     def _clean_hla_header(self, header: str) -> str:
@@ -384,7 +476,7 @@ class HLAExtractor(BaseExtractor):
             Cleaned HLA value or empty string if invalid
         """
         # Remove whitespace and normalize
-        value = value.strip()
+        value = str(value).strip()
         
         # Check if this looks like a valid HLA value
         if self._is_valid_hla_value(value):
