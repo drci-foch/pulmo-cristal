@@ -36,6 +36,7 @@ DONOR_ALT_PATTERNS = {
 # HLA patterns
 HLA_PATTERNS = {
     "hla_basic": re.compile(r"A1\s+A2\s+B1\s+B2\s+C1\s+C2\s+DR1\s+DR2[^\n]*\n\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)", DEFAULT_FLAGS),
+    "hla_dqa": re.compile(r"DQA\s+DQA\s*\n\s*(\d+)\s+(\d+)", DEFAULT_FLAGS),
     "hla_dqb": re.compile(r"DQB\s+DQB\s*\n\s*(\d+)\s+(\d+)", DEFAULT_FLAGS),
     "hla_dp": re.compile(r"DP\s+DP\s*\n\s*(\d+)\s+(\d+)", DEFAULT_FLAGS),
 }
