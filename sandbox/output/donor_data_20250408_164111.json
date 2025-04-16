@@ -1,0 +1,105 @@
+{
+    "metadata": {
+        "generator": "pulmo-cristal",
+        "version": "0.1.0",
+        "export_date": "2025-04-08T16:41:11.045918",
+        "record_count": 1,
+        "encoding": "utf-8"
+    },
+    "donors": [
+        {
+            "fichier_source": "patient1.pdf",
+            "chemin_relatif": "sample_pdfs\\patient1.pdf",
+            "informations_donneur": {
+                "num_cristal": "175394",
+                "type_donneur": "Donneur prélevé, organe greffé\nCoeur Battant (SME)",
+                "age": "67",
+                "sexe": "M",
+                "groupe_sanguin": "o-",
+                "date_naissance": "03/12/1952",
+                "taille": "173",
+                "poids": "78",
+                "date_clampage": "05/01/2020",
+                "etiologie": "Traumatique Non A.V.P.",
+                "duree_ventilation": "1",
+                "hla": {
+                    "A1": "2",
+                    "A2": "24",
+                    "B1": "35",
+                    "B2": "51",
+                    "C1": "4",
+                    "C2": "14",
+                    "DR1": "11",
+                    "DR2": "16",
+                    "DQA": "5",
+                    "DQB": "7",
+                    "DP1": "4",
+                    "DP2": "0"
+                },
+                "hla_extraction_status": "OK"
+            },
+            "serologies": {},
+            "morphologie": {},
+            "habitus": {
+                "alcoolisme": "Non",
+                "tabagisme": "Non",
+                "toxicomanie": "Non"
+            },
+            "antecedents": {
+                "traitement": "Non",
+                "hta": "Non",
+                "diabete": "Non",
+                "maladie_broncho_pulmonanire": "Non"
+            },
+            "bilan_infectieux": {
+                "antibiotherapie": "Non"
+            },
+            "bilan_hemodynamique": {
+                "arret_cardiaque_recup": "Non, pas d'arrêt cardiaque",
+                "concentre_globulaire": "0",
+                "plasma_frais_congele": "0",
+                "concentre_plaquettaire": "0",
+                "albumine": "Non"
+            },
+            "evolution_hemodynamique": {
+                "dopamine": "0",
+                "dobutamine": "0",
+                "adrenaline": "0",
+                "noradrenaline": "0"
+            },
+            "bilan_pulmonaire": {
+                "traumatise_broncho_pulmonaire_actuel": "Non",
+                "lesion_pleurale_traumatique_actuelle": "Non",
+                "radiographie_thoraco_pulmonaire": "Normale",
+                "aspirations_tracheo_bronchiques": "Propres",
+                "prelevement_bacteriologique": "Non fait",
+                "fibroscopie_bronchique": "Non"
+            },
+            "parametres_respiratoires": {
+                "pH": "32",
+                "PaCO2": "410",
+                "PaO2": "410",
+                "CO3H": "28",
+                "SaO2": "60",
+                "PEEP": "0"
+            },
+            "bilan_cardiaque_morphologique": {
+                "fraction_d_ejection": "60"
+            },
+            "thorax": {
+                "epanchement_gazeux_droit": "Non",
+                "epanchement_gazeux_gauche": "Non",
+                "epanchement_liquidien_droit": "Non",
+                "epanchement_liquidien_gauche": "Non",
+                "atelectasie_droit": "Oui",
+                "atelectasie_gauche": "Oui",
+                "contusion_pulmonaire_droit": "Non",
+                "contusion_pulmonaire_gauche": "Non",
+                "infiltrat_droit": "Non",
+                "infiltrat_gauche": "Non",
+                "images_compatibles_avec_inhalation_droit": "Non",
+                "images_compatibles_avec_inhalation_gauche": "Non"
+            }
+        }
+    ]
+}

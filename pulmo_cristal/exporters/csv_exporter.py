@@ -82,7 +82,7 @@ class DonorCSVExporter(BaseExtractor):
             {"name": "hla_DQB", "header": "HLA DQB", "path": ["informations_donneur", "hla", "DQB"]},
             {"name": "hla_DP1", "header": "HLA DP1", "path": ["informations_donneur", "hla", "DP1"]},
             {"name": "hla_DP2", "header": "HLA DP2", "path": ["informations_donneur", "hla", "DP2"]},
-            {"name": "hla_extraction_status", "header": "Statut extraction HLA", "path": ["informations_donneur", "hla_extraction_status"]},
+            #{"name": "hla_extraction_status", "header": "Statut extraction HLA", "path": ["informations_donneur", "hla_extraction_status"]},
             
             # Serologies
             {"name": "antigene_p24", "header": "Antigène P24", "path": ["serologies", "antigene_p24"]},

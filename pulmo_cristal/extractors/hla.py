@@ -112,7 +112,7 @@ class HLAExtractor(BaseExtractor):
                 hla_data = self._extract_hla_values_from_dataframe_original(tables)
             
             # If Camelot extraction was insufficient, try regex
-            if not hla_data or len(hla_data.keys()) < 3:
+            if not hla_data or len(hla_data.keys()) < 5:
                 self.log("Camelot extraction insufficient, using regex fallback")
                 regex_hla = self._extract_hla_with_regex(self.text_content)
                 
@@ -122,7 +122,7 @@ class HLAExtractor(BaseExtractor):
                         hla_data[key] = value
             
             # Determine status based on data completeness
-            if hla_data and len(hla_data.keys()) >= 3:
+            if hla_data and len(hla_data.keys()) >= 5:
                 status = "OK"
             else:
                 status = "À VÉRIFIER MANUELLEMENT"
@@ -252,143 +252,6 @@ class HLAExtractor(BaseExtractor):
         return hla_data
 
 
-    def _extract_hla_values_from_dataframe(self, tables) -> Dict[str, str]:
-        """
-        Extract HLA values from a Camelot table dataframe.
-        
-        This method uses the same logic as the original DonneurDataExtractor
-        for maximum compatibility with the original code.
-        
-        Args:
-            tables: List of tables extracted by Camelot
-            
-        Returns:
-            Dictionary of HLA values
-        """
-        hla_data = {}
-        hla_found = False
-
-        for i, table in enumerate(tables):
-            # Get the DataFrame from the table
-            if hasattr(table, "df"):
-                # Camelot Table objects have a df attribute
-                df = table.df
-            else:
-                # For other table types
-                df = table
-
-            try:
-                # Check if "HLA" is in the headers
-                header_row = None
-                data_row = None
-
-                # Search for HLA header and data rows
-                for row_idx, row in df.iterrows():
-                    row_text = " ".join(str(cell) for cell in row)
-
-                    if "HLA" in row_text and header_row is None:
-                        header_row = row_idx
-                        continue
-
-                    # If we found the header, the next row contains the data
-                    if header_row is not None and data_row is None:
-                        data_row = row_idx
-                        break
-
-                # If we found both header and data rows
-                if header_row is not None and data_row is not None:
-                    # Extract HLA values
-                    header_values = [str(cell).strip() for cell in df.iloc[header_row]]
-                    data_values = [str(cell).strip() for cell in df.iloc[data_row]]
-
-                    if self.debug:
-                        self.log(f"HLA Headers: {header_values}")
-                        self.log(f"HLA Values: {data_values}")
-
-                    # Create a dictionary with HLA values
-                    for j, header in enumerate(header_values):
-                        # Skip empty or irrelevant cells
-                        if j < len(data_values) and header and data_values[j]:
-                            # Handle composite headers (like A1\nA2)
-                            if "\n" in header:
-                                sub_headers = header.split("\n")
-                                for k, sub_header in enumerate(sub_headers):
-                                    if k < len(data_values[j].split("\n")):
-                                        sub_value = data_values[j].split("\n")[k]
-                                        hla_data[sub_header.strip()] = sub_value.strip()
-                                    else:
-                                        hla_data[sub_header.strip()] = ""
-                            else:
-                                hla_data[header] = data_values[j]
-
-                    hla_found = True
-                    break
-            except Exception as e:
-                self.log(f"Error analyzing table {i}: {str(e)}", level=logging.WARNING)
-                continue
-
-        # If no HLA value was found, try a different approach
-        if not hla_found:
-            self.log("Attempting alternative HLA extraction...")
-            for i, table in enumerate(tables):
-                if hasattr(table, "df"):
-                    df = table.df
-                else:
-                    df = table
-
-                # Look for "HLA" in all cells
-                for row_idx, row in df.iterrows():
-                    for col_idx, cell in enumerate(row):
-                        if isinstance(cell, str) and "HLA" in cell:
-                            # Find HLA alleles in subsequent rows
-                            if row_idx + 1 < len(df):
-                                # Assume the next row contains HLA data
-                                hla_row = df.iloc[row_idx + 1]
-
-                                # Try to extract basic HLA alleles
-                                try:
-                                    col_names = df.columns.tolist()
-                                    for j, col_name in enumerate(col_names):
-                                        if j < len(hla_row):
-                                            hla_data[f"col_{j}"] = str(hla_row[j]).strip()
-                                except Exception as e:
-                                    self.log(f"Error in alternative extraction: {str(e)}", 
-                                             level=logging.WARNING)
-
-                            hla_found = True
-                            break
-
-                    if hla_found:
-                        break
-        
-        # Clean up generic column names if found
-        cleaned_hla_data = {}
-        common_hla_positions = {
-            "col_0": "A1", "col_1": "A2", 
-            "col_2": "B1", "col_3": "B2",
-            "col_4": "C1", "col_5": "C2",
-            "col_6": "DR1", "col_7": "DR2"
-        }
-        
-        for key, value in hla_data.items():
-            if key.startswith("col_") and key in common_hla_positions:
-                cleaned_key = common_hla_positions[key]
-                cleaned_hla_data[cleaned_key] = value
-            else:
-                # Normalize other headers
-                cleaned_key = self._clean_hla_header(key)
-                if cleaned_key:
-                    cleaned_hla_data[cleaned_key] = value
-        
-        # Merge cleaned data back if any conversions were made
-        if cleaned_hla_data:
-            hla_data.update(cleaned_hla_data)
-        
-        if self.debug:
-            self.log(f"Final HLA data from tables: {hla_data}")
-        
-        return hla_data
-
     def _extract_hla_with_regex(self, text: str) -> Dict[str, str]:
         """
         Extract HLA data using regex patterns as fallback.
@@ -501,18 +364,18 @@ class HLAExtractor(BaseExtractor):
             
         # Map common header variations
         header_mapping = {
-            'A': 'A1', 'A1': 'A1',
+            'A1': 'A1',
             'A2': 'A2',
-            'B': 'B1', 'B1': 'B1',
+            'B1': 'B1',
             'B2': 'B2',
-            'C': 'C1', 'C1': 'C1',
+            'C1': 'C1',
             'C2': 'C2',
-            'DR': 'DR1', 'DR1': 'DR1',
+            'DR1': 'DR1',
             'DR2': 'DR2',
             'DQA':'DQA',
-            'DQ': 'DQB1', 'DQ1': 'DQB1', 'DQB': 'DQB1', 'DQB1': 'DQB1',
+            'DQ1': 'DQB1', 'DQB1': 'DQB1',
             'DQ2': 'DQB2', 'DQB2': 'DQB2',
-            'DP': 'DP1', 'DP1': 'DP1',
+            'DP1': 'DP1',
             'DP2': 'DP2'
         }
         
