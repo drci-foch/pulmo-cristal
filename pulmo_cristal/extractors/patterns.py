@@ -23,7 +23,8 @@ DONOR_PATTERNS = {
     "poids": re.compile(r"Poids.*?(\d+(?:\.\d+)?)\s*kg", DEFAULT_FLAGS),
     "date_creation": re.compile(r"Date de création du dossier\s*:?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS),
     "date_entree_bloc": re.compile(r"Date d'entrée au bloc\s*:?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS),
-    "date_clampage": re.compile(r"Date de clampage\s*:?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS),
+    "date_clampage": re.compile(r"(?:Date de clampage|Date et heure du constat de décès)\s*:?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS),
+    "heure_clampage": re.compile(r"(?:Date de clampage|Date et heure du constat de décès)\s*:?\s*\d{2}/\d{2}/\d{4}\s*:?\s*(\d{2}:\d{2})", DEFAULT_FLAGS),
     "etiologie": re.compile(r"Etiologie \(cause de décès\)([^\n]*)\n", DEFAULT_FLAGS),
     "duree_ventilation": re.compile(r"Durée de ventilation ([^\n]*\d+[^\n]*) JOURS", DEFAULT_FLAGS),
 }
