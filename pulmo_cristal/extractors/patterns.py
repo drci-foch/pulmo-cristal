@@ -26,7 +26,8 @@ DONOR_PATTERNS = {
     "date_clampage": re.compile(r"(?:Date de clampage|Date et heure du constat de décès)\s*:?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS),
     "heure_clampage": re.compile(r"(?:Date de clampage|Date et heure du constat de décès)\s*:?\s*\d{2}/\d{2}/\d{4}\s*:?\s*(\d{2}:\d{2})", DEFAULT_FLAGS),
     "etiologie": re.compile(r"Etiologie \(cause de décès\)([^\n]*)\n", DEFAULT_FLAGS),
-    "duree_ventilation": re.compile(r"Durée de ventilation ([^\n]*\d+[^\n]*) JOURS", DEFAULT_FLAGS),
+    "duree_ventilation": re.compile(r"(?:Nombre de jours de ventilation|Durée de ventilation)\s+(\d+)", DEFAULT_FLAGS),
+    "commentaire": re.compile(r"Durée de ventilation.*[\r\n]+Commentaire(.*)", DEFAULT_FLAGS)
 }
 
 # Alternative donor patterns for cases where primary patterns fail

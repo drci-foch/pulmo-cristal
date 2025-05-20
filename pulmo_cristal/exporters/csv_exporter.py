@@ -67,6 +67,7 @@ class DonorCSVExporter(BaseExtractor):
             {"name": "heure_clampage", "header": "Heure de clampage", "path": ["informations_donneur", "heure_clampage"]},
             {"name": "etiologie", "header": "Étiologie (cause de décès)", "path": ["informations_donneur", "etiologie"]},
             {"name": "duree_ventilation", "header": "Durée de ventilation (jours)", "path": ["informations_donneur", "duree_ventilation"]},
+            {"name": "commentaire", "header": "Commentaire", "path": ["informations_donneur", "commentaire"]},
             
             # HLA data
             {"name": "hla_A1", "header": "HLA A1", "path": ["informations_donneur", "hla", "A1"]},
