@@ -63,9 +63,8 @@ class DonorCSVExporter(BaseExtractor):
             {"name": "date_naissance", "header": "Date de naissance", "path": ["informations_donneur", "date_naissance"]},
             {"name": "taille", "header": "Taille (cm)", "path": ["informations_donneur", "taille"]},
             {"name": "poids", "header": "Poids (kg)", "path": ["informations_donneur", "poids"]},
-            {"name": "date_creation", "header": "Date de création du dossier", "path": ["informations_donneur", "date_creation"]},
-            {"name": "date_entree_bloc", "header": "Date d'entrée au bloc", "path": ["informations_donneur", "date_entree_bloc"]},
             {"name": "date_clampage", "header": "Date de clampage", "path": ["informations_donneur", "date_clampage"]},
+            {"name": "heure_clampage", "header": "Heure de clampage", "path": ["informations_donneur", "heure_clampage"]},
             {"name": "etiologie", "header": "Étiologie (cause de décès)", "path": ["informations_donneur", "etiologie"]},
             {"name": "duree_ventilation", "header": "Durée de ventilation (jours)", "path": ["informations_donneur", "duree_ventilation"]},
             
@@ -104,9 +103,9 @@ class DonorCSVExporter(BaseExtractor):
             {"name": "anti_hhv8", "header": "Anti-HHV8", "path": ["serologies", "anti_hhv8"]},
             
             # Morphology
-            {"name": "perimetre_bi_mamelonnaire", "header": "Périmètre bi-mamelonnaire", "path": ["morphologie", "perimetre_bi_mamelonnaire"]},
-            {"name": "hauteur_sternale", "header": "Hauteur sternale", "path": ["morphologie", "hauteur_sternale"]},
-            {"name": "perimetre_ombilical", "header": "Périmètre ombilical", "path": ["morphologie", "perimetre_ombilical"]},
+            {"name": "perimetre_bi_mamelonnaire", "header": "Périmètre bi-mamelonnaire (cm)", "path": ["morphologie", "perimetre_bi_mamelonnaire"]},
+            {"name": "hauteur_sternale", "header": "Hauteur sternale (cm)", "path": ["morphologie", "hauteur_sternale"]},
+            {"name": "perimetre_ombilical", "header": "Périmètre ombilical (cm)", "path": ["morphologie", "perimetre_ombilical"]},
             
             # Habitus
             {"name": "alcoolisme", "header": "Alcoolisme", "path": ["habitus", "alcoolisme"]},

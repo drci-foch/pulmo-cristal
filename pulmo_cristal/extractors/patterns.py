@@ -117,7 +117,7 @@ BILAN_PULMONAIRE_PATTERNS = {
     "radiographie_thoraco_pulmonaire": re.compile(r"Radiographie thoraco-pulmonaire\s*([^\n]+)", DEFAULT_FLAGS),
     "aspirations_tracheo_bronchiques": re.compile(r"Aspirations trachéo-bronchiques\s*([^\n]+)", DEFAULT_FLAGS),
     "prelevement_bacteriologique": re.compile(r"Prélèvement bactériologique\s*([^\n]+)", DEFAULT_FLAGS),
-    "fibroscopie_bronchique": re.compile(r"Fibroscopie bronchique\s*([^\n]+)", DEFAULT_FLAGS),
+    "fibroscopie_bronchique": re.compile(r"Fibroscopie bronchique\s+(Oui|Non)", DEFAULT_FLAGS),
 }
 
 # Respiratory parameters patterns - these may have multiple values so we extract the last one
@@ -137,18 +137,18 @@ BILAN_CARDIAQUE_PATTERNS = {
 
 # Thorax assessment patterns
 THORAX_PATTERNS = {
-    "epanchement_gazeux_droit": re.compile(r"Epanchement gazeux\s+(\w+)\s+\w+", DEFAULT_FLAGS),
-    "epanchement_gazeux_gauche": re.compile(r"Epanchement gazeux\s+\w+\s+(\w+)", DEFAULT_FLAGS),
-    "epanchement_liquidien_droit": re.compile(r"Epanchement liquidien\s+(\w+)\s+\w+", DEFAULT_FLAGS),
-    "epanchement_liquidien_gauche": re.compile(r"Epanchement liquidien\s+\w+\s+(\w+)", DEFAULT_FLAGS),
-    "atelectasie_droit": re.compile(r"Atélectasie\s+(\w+)\s+\w+", DEFAULT_FLAGS),
-    "atelectasie_gauche": re.compile(r"Atélectasie\s+\w+\s+(\w+)", DEFAULT_FLAGS),
-    "contusion_pulmonaire_droit": re.compile(r"Contusion pulmonaire\s+(\w+)\s+\w+", DEFAULT_FLAGS),
-    "contusion_pulmonaire_gauche": re.compile(r"Contusion pulmonaire\s+\w+\s+(\w+)", DEFAULT_FLAGS),
-    "infiltrat_droit": re.compile(r"Infiltrat\s+(\w+)\s+\w+", DEFAULT_FLAGS),
-    "infiltrat_gauche": re.compile(r"Infiltrat\s+\w+\s+(\w+)", DEFAULT_FLAGS),
-    "images_compatibles_avec_inhalation_droit": re.compile(r"Images compatibles avec une inhalation\s+(\w+)\s+\w+", DEFAULT_FLAGS),
-    "images_compatibles_avec_inhalation_gauche": re.compile(r"Images compatibles avec une inhalation\s+\w+\s+(\w+)", DEFAULT_FLAGS),
+    "epanchement_gazeux_droit": re.compile(r"Epanchement gazeux\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
+    "epanchement_gazeux_gauche": re.compile(r"Epanchement gazeux\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
+    "epanchement_liquidien_droit": re.compile(r"Epanchement liquidien\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
+    "epanchement_liquidien_gauche": re.compile(r"Epanchement liquidien\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
+    "atelectasie_droit": re.compile(r"Atélectasie\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
+    "atelectasie_gauche": re.compile(r"Atélectasie\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
+    "contusion_pulmonaire_droit": re.compile(r"Contusion pulmonaire\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
+    "contusion_pulmonaire_gauche": re.compile(r"Contusion pulmonaire\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
+    "infiltrat_droit": re.compile(r"Infiltrat\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
+    "infiltrat_gauche": re.compile(r"Infiltrat\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
+    "images_compatibles_avec_inhalation_droit": re.compile(r"Images compatibles avec une inhalation\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
+    "images_compatibles_avec_inhalation_gauche": re.compile(r"Images compatibles avec une inhalation\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
 }
 
 # Groups all pattern dictionaries for easy access
