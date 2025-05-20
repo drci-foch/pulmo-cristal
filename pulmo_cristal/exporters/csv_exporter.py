@@ -141,8 +141,8 @@ class DonorCSVExporter(BaseExtractor):
             # Pulmonary assessment
             {"name": "traumatise_broncho_pulmonaire_actuel", "header": "Traumatisme broncho-pulmonaire actuel", "path": ["bilan_pulmonaire", "traumatise_broncho_pulmonaire_actuel"]},
             {"name": "lesion_pleurale_traumatique_actuelle", "header": "Lésion pleurale traumatique actuelle", "path": ["bilan_pulmonaire", "lesion_pleurale_traumatique_actuelle"]},
-            {"name": "radiographie_thoraco_pulmonaire", "header": "Radiographie thoraco-pulmonaire", "path": ["bilan_pulmonaire", "radiographie_thoraco-pulmonaire"]},
-            {"name": "aspirations_tracheo_bronchiques", "header": "Aspirations trachéo-bronchiques", "path": ["bilan_pulmonaire", "aspirations trachéo-bronchiques"]},
+            {"name": "radiographie_thoraco_pulmonaire", "header": "Radiographie thoraco-pulmonaire", "path": ["bilan_pulmonaire", "radiographie_thoraco_pulmonaire"]},
+            {"name": "aspirations_tracheo_bronchiques", "header": "Aspirations trachéo-bronchiques", "path": ["bilan_pulmonaire", "aspirations trachéo_bronchiques"]},
             {"name": "prelevement_bacteriologique", "header": "Prélèvement bactériologique", "path": ["bilan_pulmonaire", "prelevement_bacteriologique"]},
             {"name": "fibroscopie_bronchique", "header": "Fibroscopie bronchique", "path": ["bilan_pulmonaire", "fibroscopie_bronchique"]},
             
