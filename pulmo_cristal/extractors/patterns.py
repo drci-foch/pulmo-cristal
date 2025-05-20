@@ -157,8 +157,8 @@ ALL_PATTERNS = {
     "donor": DONOR_PATTERNS,
     "donor_alt": DONOR_ALT_PATTERNS,
     "hla": HLA_PATTERNS,
-    "serology": SEROLOGY_PATTERNS,
-    "morphology": MORPHOLOGY_PATTERNS,
+    "serologies": SEROLOGY_PATTERNS,
+    "morphologie": MORPHOLOGY_PATTERNS,
     "habitus": HABITUS_PATTERNS,
     "antecedents": ANTECEDENTS_PATTERNS,
     "bilan_infectieux": BILAN_INFECTIEUX_PATTERNS,
@@ -166,7 +166,7 @@ ALL_PATTERNS = {
     "evolution_hemodynamique": EVOLUTION_HEMODYNAMIQUE_PATTERNS,
     "bilan_pulmonaire": BILAN_PULMONAIRE_PATTERNS,
     "parametres_respiratoires": PARAMETRES_RESPIRATOIRES_PATTERNS,
-    "bilan_cardiaque": BILAN_CARDIAQUE_PATTERNS,
+    "bilan_cardiaque_morphologique": BILAN_CARDIAQUE_PATTERNS,
     "thorax": THORAX_PATTERNS,
 }
 
