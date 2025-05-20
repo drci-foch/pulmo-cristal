@@ -78,7 +78,7 @@ class DonorCSVExporter(BaseExtractor):
             {"name": "hla_C2", "header": "HLA C2", "path": ["informations_donneur", "hla", "C2"]},
             {"name": "hla_DR1", "header": "HLA DR1", "path": ["informations_donneur", "hla", "DR1"]},
             {"name": "hla_DR2", "header": "HLA DR2", "path": ["informations_donneur", "hla", "DR2"]},
-            {"name": "hla_DQA", "header": "HLA DQA", "path": ["informations_donneur", "hla", "DBA"]},
+            {"name": "hla_DQA", "header": "HLA DQA", "path": ["informations_donneur", "hla", "DQA"]},
             {"name": "hla_DQB", "header": "HLA DQB", "path": ["informations_donneur", "hla", "DQB"]},
             {"name": "hla_DP1", "header": "HLA DP1", "path": ["informations_donneur", "hla", "DP1"]},
             {"name": "hla_DP2", "header": "HLA DP2", "path": ["informations_donneur", "hla", "DP2"]},
@@ -142,7 +142,7 @@ class DonorCSVExporter(BaseExtractor):
             {"name": "traumatise_broncho_pulmonaire_actuel", "header": "Traumatisme broncho-pulmonaire actuel", "path": ["bilan_pulmonaire", "traumatise_broncho_pulmonaire_actuel"]},
             {"name": "lesion_pleurale_traumatique_actuelle", "header": "Lésion pleurale traumatique actuelle", "path": ["bilan_pulmonaire", "lesion_pleurale_traumatique_actuelle"]},
             {"name": "radiographie_thoraco_pulmonaire", "header": "Radiographie thoraco-pulmonaire", "path": ["bilan_pulmonaire", "radiographie_thoraco_pulmonaire"]},
-            {"name": "aspirations_tracheo_bronchiques", "header": "Aspirations trachéo-bronchiques", "path": ["bilan_pulmonaire", "aspirations trachéo_bronchiques"]},
+            {"name": "aspirations_tracheo_bronchiques", "header": "Aspirations trachéo-bronchiques", "path": ["bilan_pulmonaire", "aspirations_tracheo_bronchiques"]},
             {"name": "prelevement_bacteriologique", "header": "Prélèvement bactériologique", "path": ["bilan_pulmonaire", "prelevement_bacteriologique"]},
             {"name": "fibroscopie_bronchique", "header": "Fibroscopie bronchique", "path": ["bilan_pulmonaire", "fibroscopie_bronchique"]},
             
