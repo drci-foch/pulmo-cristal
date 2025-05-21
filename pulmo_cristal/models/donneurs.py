@@ -602,10 +602,6 @@ class Donneur:
             donneur.bilan_cardiaque = BilanCardiaqueData.from_dict(
                 data["bilan_cardiaque_morphologique"]
             )
-        elif "bilan_cardiaque" in data:
-            donneur.bilan_cardiaque = BilanCardiaqueData.from_dict(
-                data["bilan_cardiaque"]
-            )
 
         if "thorax" in data:
             donneur.thorax = ThoraxData.from_dict(data["thorax"])
