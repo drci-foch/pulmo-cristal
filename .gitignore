@@ -9,6 +9,7 @@ sample_pdfs/*
 *.pdf
 *.csv
 *.json
+*.xlsx
 # Distribution / packaging
 .Python
 build/
