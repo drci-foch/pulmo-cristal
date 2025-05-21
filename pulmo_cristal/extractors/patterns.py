@@ -14,20 +14,41 @@ DEFAULT_FLAGS = re.IGNORECASE | re.DOTALL
 # Basic donor information patterns
 DONOR_PATTERNS = {
     "num_cristal": re.compile(r"N°\s*CRISTAL\s*(\d+)", DEFAULT_FLAGS),
-    "type_donneur": re.compile(r"Le donneur est\s*(.*?)(?:Site de décès|$)", DEFAULT_FLAGS),
+    "type_donneur": re.compile(
+        r"Le donneur est\s*(.*?)(?:Site de décès|$)", DEFAULT_FLAGS
+    ),
     "age": re.compile(r"(\d+)\s*ans", DEFAULT_FLAGS),
     "sexe": re.compile(r"Sexe\s*:?\s*([MF])", DEFAULT_FLAGS),
-    "groupe_sanguin": re.compile(r"Groupe ABO\s.*?\s*((?:[ABO]|AB)\s*[\+\-])", DEFAULT_FLAGS),
-    "date_naissance": re.compile(r"Date de naissance\s.*?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS),
+    "groupe_sanguin": re.compile(
+        r"Groupe ABO\s.*?\s*((?:[ABO]|AB)\s*[\+\-])", DEFAULT_FLAGS
+    ),
+    "date_naissance": re.compile(
+        r"Date de naissance\s.*?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS
+    ),
     "taille": re.compile(r"Taille\s.*?\s*(\d+)\s*cm", DEFAULT_FLAGS),
     "poids": re.compile(r"Poids.*?(\d+(?:\.\d+)?)\s*kg", DEFAULT_FLAGS),
-    "date_creation": re.compile(r"Date de création du dossier\s*:?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS),
-    "date_entree_bloc": re.compile(r"Date d'entrée au bloc\s*:?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS),
-    "date_clampage": re.compile(r"(?:Date de clampage|Date et heure du constat de décès)\s*:?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS),
-    "heure_clampage": re.compile(r"(?:Date de clampage|Date et heure du constat de décès)\s*:?\s*\d{2}/\d{2}/\d{4}\s*:?\s*(\d{2}:\d{2})", DEFAULT_FLAGS),
+    "date_creation": re.compile(
+        r"Date de création du dossier\s*:?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS
+    ),
+    "date_entree_bloc": re.compile(
+        r"Date d'entrée au bloc\s*:?\s*(\d{2}/\d{2}/\d{4})", DEFAULT_FLAGS
+    ),
+    "date_clampage": re.compile(
+        r"(?:Date de clampage|Date et heure du constat de décès)\s*:?\s*(\d{2}/\d{2}/\d{4})",
+        DEFAULT_FLAGS,
+    ),
+    "heure_clampage": re.compile(
+        r"(?:Date de clampage|Date et heure du constat de décès)\s*:?\s*\d{2}/\d{2}/\d{4}\s*:?\s*(\d{2}:\d{2})",
+        DEFAULT_FLAGS,
+    ),
     "etiologie": re.compile(r"Etiologie \(cause de décès\)([^\n]*)\n", DEFAULT_FLAGS),
-    "duree_ventilation": re.compile(r"(?:Nombre de jours de ventilation|Durée de ventilation)\s+(\d+)", DEFAULT_FLAGS),
-    "commentaire": re.compile(r"Durée de ventilation.*[\r\n]+Commentaire(.*)", DEFAULT_FLAGS)
+    "duree_ventilation": re.compile(
+        r"(?:Nombre de jours de ventilation|Durée de ventilation)\s+(\d+)",
+        DEFAULT_FLAGS,
+    ),
+    "commentaire": re.compile(
+        r"Durée de ventilation.*[\r\n]+Commentaire(.*)", DEFAULT_FLAGS
+    ),
 }
 
 # Alternative donor patterns for cases where primary patterns fail
@@ -37,7 +58,10 @@ DONOR_ALT_PATTERNS = {
 
 # HLA patterns
 HLA_PATTERNS = {
-    "hla_basic": re.compile(r"A1\s+A2\s+B1\s+B2\s+C1\s+C2\s+DR1\s+DR2[^\n]*\n\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)", DEFAULT_FLAGS),
+    "hla_basic": re.compile(
+        r"A1\s+A2\s+B1\s+B2\s+C1\s+C2\s+DR1\s+DR2[^\n]*\n\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)",
+        DEFAULT_FLAGS,
+    ),
     "hla_dqa": re.compile(r"DQA\s+DQA\s*\n\s*(\d+)\s+(\d+)", DEFAULT_FLAGS),
     "hla_dqb": re.compile(r"DQB\s+DQB\s*\n\s*(\d+)\s+(\d+)", DEFAULT_FLAGS),
     "hla_dp": re.compile(r"DP\s+DP\s*\n\s*(\d+)\s+(\d+)", DEFAULT_FLAGS),
@@ -56,19 +80,27 @@ SEROLOGY_PATTERNS = {
     "anti_hbc": re.compile(r"Anticorps anti-HBc\s*([^\n]+)", DEFAULT_FLAGS),
     "anti_hbs": re.compile(r"Anticorps anti-HBs\s*([^\n]+)", DEFAULT_FLAGS),
     "dgv_vhe": re.compile(r"DGV VHE\s*([^\n]+)", DEFAULT_FLAGS),
-    "serologie_anguillulose": re.compile(r"Sérologie Anguillulose\s*([^\n]+)", DEFAULT_FLAGS),
+    "serologie_anguillulose": re.compile(
+        r"Sérologie Anguillulose\s*([^\n]+)", DEFAULT_FLAGS
+    ),
     "syphilis_tpha": re.compile(r"Syphilis: TPHA\s*([^\n]+)", DEFAULT_FLAGS),
     "anti_cmv": re.compile(r"Anticorps anti-CMV\s*([^\n]+)", DEFAULT_FLAGS),
     "anti_ebv": re.compile(r"Anticorps anti-EBV\s*([^\n]+)", DEFAULT_FLAGS),
-    "anti_toxoplasmose": re.compile(r"Anticorps anti-Toxoplasmose\s*([^\n]+)", DEFAULT_FLAGS),
+    "anti_toxoplasmose": re.compile(
+        r"Anticorps anti-Toxoplasmose\s*([^\n]+)", DEFAULT_FLAGS
+    ),
     "anti_hhv8": re.compile(r"Anticorps anti-HHV8\s*([^\n]+)", DEFAULT_FLAGS),
 }
 
 # Morphology patterns
 MORPHOLOGY_PATTERNS = {
-    "perimetre_bi_mamelonnaire": re.compile(r"Périmètre bi-mamelonnaire\s+(\d*)?(cm)?", DEFAULT_FLAGS),
+    "perimetre_bi_mamelonnaire": re.compile(
+        r"Périmètre bi-mamelonnaire\s+(\d*)?(cm)?", DEFAULT_FLAGS
+    ),
     "hauteur_sternale": re.compile(r"Hauteur sternale\s+(\d*)?(cm)?", DEFAULT_FLAGS),
-    "perimetre_ombilical": re.compile(r"Périmètre ombilical\s+(\d*)?(cm)?", DEFAULT_FLAGS),
+    "perimetre_ombilical": re.compile(
+        r"Périmètre ombilical\s+(\d*)?(cm)?", DEFAULT_FLAGS
+    ),
 }
 
 # Lifestyle/habits patterns
@@ -80,45 +112,79 @@ HABITUS_PATTERNS = {
 
 # Medical history patterns
 ANTECEDENTS_PATTERNS = {
-    "traitement": re.compile(r"Le patient suivait-il un traitement \?\s*([^\n]+)", DEFAULT_FLAGS),
+    "traitement": re.compile(
+        r"Le patient suivait-il un traitement \?\s*([^\n]+)", DEFAULT_FLAGS
+    ),
     "hta": re.compile(r"Hyper tension artérielle\?\s*([^\n]+)", DEFAULT_FLAGS),
     "diabete": re.compile(r"Diabète\s*([^\n]+)", DEFAULT_FLAGS),
-    "maladie_broncho_pulmonanire": re.compile(r"Maladie broncho-pulmonaire\s*([^\n]+)", DEFAULT_FLAGS),
+    "maladie_broncho_pulmonanire": re.compile(
+        r"Maladie broncho-pulmonaire\s*([^\n]+)", DEFAULT_FLAGS
+    ),
 }
 
 # Infectious assessment patterns
 BILAN_INFECTIEUX_PATTERNS = {
-    "antibiotherapie": re.compile(r"Antibiothérapie(?!\s+et résultats)\s+([^\n]+)", DEFAULT_FLAGS),
+    "antibiotherapie": re.compile(
+        r"Antibiothérapie(?!\s+et résultats)\s+([^\n]+)", DEFAULT_FLAGS
+    ),
     "si_oui_preciser": re.compile(r"Si oui, préciser\?([^\n]+)", DEFAULT_FLAGS),
     "diag_covid19": re.compile(r"Diagnostic COVID-19\s+([^\n]+)", DEFAULT_FLAGS),
 }
 
 # Hemodynamic assessment patterns
 BILAN_HEMODYNAMIQUE_PATTERNS = {
-    "arret_cardiaque_recup": re.compile(r"Arrêt cardiaque récupéré \?\s+([^\n]+)", DEFAULT_FLAGS),
-    "concentre_globulaire": re.compile(r"concentré globulaire\s+([\d+]+)", DEFAULT_FLAGS),
-    "plasma_frais_congele": re.compile(r"Plasma frais congelé\s+([\d+]+)", DEFAULT_FLAGS),
-    "concentre_plaquettaire": re.compile(r"Concentré plaquettaire\s+([\d+]+)", DEFAULT_FLAGS),
+    "arret_cardiaque_recup": re.compile(
+        r"Arrêt cardiaque récupéré \?\s+([^\n]+)", DEFAULT_FLAGS
+    ),
+    "concentre_globulaire": re.compile(
+        r"concentré globulaire\s+([\d+]+)", DEFAULT_FLAGS
+    ),
+    "plasma_frais_congele": re.compile(
+        r"Plasma frais congelé\s+([\d+]+)", DEFAULT_FLAGS
+    ),
+    "concentre_plaquettaire": re.compile(
+        r"Concentré plaquettaire\s+([\d+]+)", DEFAULT_FLAGS
+    ),
     "albumine": re.compile(r"Albumine\s+([^\n]+)", DEFAULT_FLAGS),
     "autres_medicaments": re.compile(r"Autres médicaments ([^\n]+)", DEFAULT_FLAGS),
 }
 
 # Hemodynamic evolution patterns - these may have multiple values so we extract the last one
 EVOLUTION_HEMODYNAMIQUE_PATTERNS = {
-    "dopamine": re.compile(r"dopamine\s+(?:.*?(\d+(?:\.\d+)?)\s*gamma\.k\/mn)+", DEFAULT_FLAGS),
-    "dobutamine": re.compile(r"dobutamine\s+(?:.*?(\d+(?:\.\d+)?)\s*gamma\.k\/mn)+", DEFAULT_FLAGS),
-    "adrenaline": re.compile(r"\badrénaline\b\s+(?:.*?(\d+(?:\.\d+)?)\s*mg\/h)+", DEFAULT_FLAGS),
-    "noradrenaline": re.compile(r"\bnoradrénaline\s+(?:.*?(\d+(?:\.\d+)?)\s*mg\/h)+", DEFAULT_FLAGS),
+    "dopamine": re.compile(
+        r"dopamine\s+(?:.*?(\d+(?:\.\d+)?)\s*gamma\.k\/mn)+", DEFAULT_FLAGS
+    ),
+    "dobutamine": re.compile(
+        r"dobutamine\s+(?:.*?(\d+(?:\.\d+)?)\s*gamma\.k\/mn)+", DEFAULT_FLAGS
+    ),
+    "adrenaline": re.compile(
+        r"\badrénaline\b\s+(?:.*?(\d+(?:\.\d+)?)\s*mg\/h)+", DEFAULT_FLAGS
+    ),
+    "noradrenaline": re.compile(
+        r"\bnoradrénaline\s+(?:.*?(\d+(?:\.\d+)?)\s*mg\/h)+", DEFAULT_FLAGS
+    ),
 }
 
 # Pulmonary assessment patterns
 BILAN_PULMONAIRE_PATTERNS = {
-    "traumatise_broncho_pulmonaire_actuel": re.compile(r"Traumatisme broncho-pulmonaire actuel\s*([^\n]+)", DEFAULT_FLAGS),
-    "lesion_pleurale_traumatique_actuelle": re.compile(r"Lésion pleurale traumatique actuelle\s*([^\n]+)", DEFAULT_FLAGS),
-    "radiographie_thoraco_pulmonaire": re.compile(r"Radiographie thoraco-pulmonaire\s*([^\n]+)", DEFAULT_FLAGS),
-    "aspirations_tracheo_bronchiques": re.compile(r"Aspirations trachéo-bronchiques\s*([^\n]+)", DEFAULT_FLAGS),
-    "prelevement_bacteriologique": re.compile(r"Prélèvement bactériologique\s*([^\n]+)", DEFAULT_FLAGS),
-    "fibroscopie_bronchique": re.compile(r"Fibroscopie bronchique\s+(Oui|Non)", DEFAULT_FLAGS),
+    "traumatise_broncho_pulmonaire_actuel": re.compile(
+        r"Traumatisme broncho-pulmonaire actuel\s*([^\n]+)", DEFAULT_FLAGS
+    ),
+    "lesion_pleurale_traumatique_actuelle": re.compile(
+        r"Lésion pleurale traumatique actuelle\s*([^\n]+)", DEFAULT_FLAGS
+    ),
+    "radiographie_thoraco_pulmonaire": re.compile(
+        r"Radiographie thoraco-pulmonaire\s*([^\n]+)", DEFAULT_FLAGS
+    ),
+    "aspirations_tracheo_bronchiques": re.compile(
+        r"Aspirations trachéo-bronchiques\s*([^\n]+)", DEFAULT_FLAGS
+    ),
+    "prelevement_bacteriologique": re.compile(
+        r"Prélèvement bactériologique\s*([^\n]+)", DEFAULT_FLAGS
+    ),
+    "fibroscopie_bronchique": re.compile(
+        r"Fibroscopie bronchique\s+(Oui|Non)", DEFAULT_FLAGS
+    ),
 }
 
 # Respiratory parameters patterns - these may have multiple values so we extract the last one
@@ -138,18 +204,34 @@ BILAN_CARDIAQUE_PATTERNS = {
 
 # Thorax assessment patterns
 THORAX_PATTERNS = {
-    "epanchement_gazeux_droit": re.compile(r"Epanchement gazeux\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
-    "epanchement_gazeux_gauche": re.compile(r"Epanchement gazeux\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
-    "epanchement_liquidien_droit": re.compile(r"Epanchement liquidien\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
-    "epanchement_liquidien_gauche": re.compile(r"Epanchement liquidien\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
+    "epanchement_gazeux_droit": re.compile(
+        r"Epanchement gazeux\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS
+    ),
+    "epanchement_gazeux_gauche": re.compile(
+        r"Epanchement gazeux\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS
+    ),
+    "epanchement_liquidien_droit": re.compile(
+        r"Epanchement liquidien\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS
+    ),
+    "epanchement_liquidien_gauche": re.compile(
+        r"Epanchement liquidien\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS
+    ),
     "atelectasie_droit": re.compile(r"Atélectasie\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
     "atelectasie_gauche": re.compile(r"Atélectasie\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
-    "contusion_pulmonaire_droit": re.compile(r"Contusion pulmonaire\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
-    "contusion_pulmonaire_gauche": re.compile(r"Contusion pulmonaire\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
+    "contusion_pulmonaire_droit": re.compile(
+        r"Contusion pulmonaire\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS
+    ),
+    "contusion_pulmonaire_gauche": re.compile(
+        r"Contusion pulmonaire\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS
+    ),
     "infiltrat_droit": re.compile(r"Infiltrat\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
     "infiltrat_gauche": re.compile(r"Infiltrat\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
-    "images_compatibles_avec_inhalation_droit": re.compile(r"Images compatibles avec une inhalation\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS),
-    "images_compatibles_avec_inhalation_gauche": re.compile(r"Images compatibles avec une inhalation\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS),
+    "images_compatibles_avec_inhalation_droit": re.compile(
+        r"Images compatibles avec une inhalation\s+(Oui|Non)\s+\w+", DEFAULT_FLAGS
+    ),
+    "images_compatibles_avec_inhalation_gauche": re.compile(
+        r"Images compatibles avec une inhalation\s+\w+\s+(Oui|Non)", DEFAULT_FLAGS
+    ),
 }
 
 # Groups all pattern dictionaries for easy access
@@ -170,32 +252,36 @@ ALL_PATTERNS = {
     "thorax": THORAX_PATTERNS,
 }
 
+
 def get_pattern_group(group_name: str) -> dict:
     """
     Get a specific pattern group by name.
-    
+
     Args:
         group_name: Name of the pattern group
-        
+
     Returns:
         Dictionary of compiled regex patterns
-        
+
     Raises:
         KeyError: If the group name doesn't exist
     """
     if group_name not in ALL_PATTERNS:
-        raise KeyError(f"Pattern group '{group_name}' not found. Available groups: {', '.join(ALL_PATTERNS.keys())}")
-    
+        raise KeyError(
+            f"Pattern group '{group_name}' not found. Available groups: {', '.join(ALL_PATTERNS.keys())}"
+        )
+
     return ALL_PATTERNS[group_name]
+
 
 def create_custom_pattern(pattern: str, flags: int = DEFAULT_FLAGS) -> re.Pattern:
     """
     Create a custom compiled regex pattern.
-    
+
     Args:
         pattern: Regex pattern string
         flags: Regex compilation flags
-        
+
     Returns:
         Compiled regex pattern
     """

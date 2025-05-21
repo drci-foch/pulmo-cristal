@@ -26,24 +26,22 @@ from .donneurs import (
 
 __all__ = [
     # Main donor model
-    'Donneur',
-    
+    "Donneur",
     # Enums
-    'DonneurType',
-    'SexeType',
-    'BooleanValue',
-    
+    "DonneurType",
+    "SexeType",
+    "BooleanValue",
     # Data section models
-    'HLAData',
-    'SerologiesData',
-    'MorphologieData',
-    'HabitusData',
-    'AntecedentsData',
-    'BilanInfectieuxData',
-    'BilanHemodynamiqueData',
-    'EvolutionHemodynamiqueData',
-    'BilanPulmonaireData',
-    'ParametresRespiratoiresData',
-    'BilanCardiaqueData',
-    'ThoraxData',
+    "HLAData",
+    "SerologiesData",
+    "MorphologieData",
+    "HabitusData",
+    "AntecedentsData",
+    "BilanInfectieuxData",
+    "BilanHemodynamiqueData",
+    "EvolutionHemodynamiqueData",
+    "BilanPulmonaireData",
+    "ParametresRespiratoiresData",
+    "BilanCardiaqueData",
+    "ThoraxData",
 ]

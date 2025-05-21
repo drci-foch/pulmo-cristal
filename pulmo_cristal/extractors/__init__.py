@@ -12,17 +12,14 @@ from .patterns import get_pattern_group, create_custom_pattern
 
 __all__ = [
     # Base classes
-    'BaseExtractor',
-    
+    "BaseExtractor",
     # PDF extractors
-    'PDFExtractor',
-    'DonorPDFExtractor',
-    
+    "PDFExtractor",
+    "DonorPDFExtractor",
     # HLA extractor
-    'HLAExtractor',
-    'HLAData',
-    
+    "HLAExtractor",
+    "HLAData",
     # Pattern utilities
-    'get_pattern_group',
-    'create_custom_pattern',
+    "get_pattern_group",
+    "create_custom_pattern",
 ]
