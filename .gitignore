@@ -6,6 +6,9 @@ sample_pdfs/*
 # C extensions
 *.so
 
+*.pdf
+*.csv
+*.json
 # Distribution / packaging
 .Python
 build/
