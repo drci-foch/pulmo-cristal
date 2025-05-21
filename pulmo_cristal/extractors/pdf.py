@@ -326,8 +326,6 @@ class DonorPDFExtractor(PDFExtractor):
             "thorax",
         ]:
             pattern_group = section_name
-            if section_name == "bilan_cardiaque_morphologique":
-                pattern_group = "bilan_cardiaque"
 
             try:
                 patterns = get_pattern_group(pattern_group)
