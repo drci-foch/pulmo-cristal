@@ -449,7 +449,7 @@ class Donneur:
     evolution_hemodynamique: Optional[EvolutionHemodynamiqueData] = None
     bilan_pulmonaire: Optional[BilanPulmonaireData] = None
     parametres_respiratoires: Optional[ParametresRespiratoiresData] = None
-    bilan_cardiaque: Optional[BilanCardiaqueData] = None
+    bilan_cardiaque_morphologique: Optional[BilanCardiaqueData] = None
     thorax: Optional[ThoraxData] = None
 
     # File information
@@ -599,7 +599,7 @@ class Donneur:
             )
 
         if "bilan_cardiaque_morphologique" in data:
-            donneur.bilan_cardiaque = BilanCardiaqueData.from_dict(
+            donneur.bilan_cardiaque_morphologique = BilanCardiaqueData.from_dict(
                 data["bilan_cardiaque_morphologique"]
             )
 
