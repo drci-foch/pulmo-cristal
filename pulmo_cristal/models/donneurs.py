@@ -708,7 +708,7 @@ class Donneur:
             "evolution_hemodynamique",
             "bilan_pulmonaire",
             "parametres_respiratoires",
-            "bilan_cardiaque",
+            "bilan_cardiaque_morphologique",
             "thorax",
         ]:
             obj = getattr(self, field_name)
