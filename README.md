@@ -1,3 +1,5 @@
+[![PyPI](https://img.shields.io/pypi/v/pulmo-cristal?color=blue&style=flat-square)](https://pypi.org/project/pulmo-cristal/)
+
 # pulmo-cristal
 
 A Python package for extracting and structuring donor data from PDF documents for pulmonary transplantation research.
