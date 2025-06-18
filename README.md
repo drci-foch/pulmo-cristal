@@ -38,8 +38,8 @@ brew install ghostscript
 ### Installing the package
 
 ```bash
-# Install directly from GitHub
-pip install git+https://github.com/drci-foch/pulmo-cristal.git
+# Install directly from Pypi
+pip install pulmo-cristal
 ```
 
 For development installation:
@@ -131,10 +131,6 @@ csv_exporter.export_csv([donor_data], "/path/to/output/data.csv")
 2. **Import errors with Camelot**:
    - Install dependencies separately: `pip install camelot-py[cv] opencv-python-headless ghostscript`
    - Check system dependencies (Ghostscript, etc.)
-
-3. **Processing takes too long**:
-   - Use batch processing with smaller batch sizes
-   - Process files in parallel with multiple workers
 
 ### Testing Camelot Installation
 
