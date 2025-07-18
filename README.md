@@ -204,4 +204,4 @@ See the LICENSE file for details.
 ## Acknowledgments
 
 - This project was developed for pulmonary transplantation research at Hôpital Foch
-- Special thanks to the DRCI (Département de la Recherche Clinique et de l'Innovation)
+- Special thanks to Edouard Sage & Antoine Roux.
