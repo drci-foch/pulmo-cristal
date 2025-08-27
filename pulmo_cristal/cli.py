@@ -20,7 +20,7 @@ __version__ = "0.1.0"
 
 # Try to import package modules, handling case where package is not installed
 try:
-    from pulmo_cristal.extractors import DonorPDFExtractor, HLAExtractor
+    from pulmo_cristal.extractors import DonorPDFExtractor, HLAExtractor, ImprovedGazDuSangExtractor
     from pulmo_cristal.exporters import DonorCSVExporter, DonorJSONExporter
     from pulmo_cristal.models import Donneur
     from pulmo_cristal.utils import (
@@ -226,6 +226,7 @@ def extract_command(args: argparse.Namespace, logger: logging.Logger) -> int:
     # Create extractors
     donor_extractor = DonorPDFExtractor(logger=logger, debug=(args.verbose >= 3))
     hla_extractor = HLAExtractor(logger=logger, debug=(args.verbose >= 3))
+    gds_extractor = ImprovedGazDuSangExtractor(logger=logger, debug=(args.verbose >= 3))
 
     # Create output filename
     json_filename = create_versioned_filename(
@@ -266,9 +267,12 @@ def extract_command(args: argparse.Namespace, logger: logging.Logger) -> int:
 
                 # Extract HLA data
                 hla_data, status = hla_extractor.extract_hla_data(pdf_file)
+                gds_data = gds_extractor.extract_hla_data(pdf_file)
+
 
                 # Add HLA data to donor data
                 donor_data["informations_donneur"]["hla"] = hla_data
+                donor_data["gds"] = gds_data
                 donor_data["informations_donneur"]["hla_extraction_status"] = status
 
                 # Add relative path
