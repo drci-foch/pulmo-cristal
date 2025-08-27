@@ -1,3 +1,5 @@
+[![PyPI](https://img.shields.io/pypi/v/pulmo-cristal?color=blue&style=flat-square)](https://pypi.org/project/pulmo-cristal/)
+
 # pulmo-cristal
 
 A Python package for extracting and structuring donor data from PDF documents for pulmonary transplantation research.
@@ -36,8 +38,8 @@ brew install ghostscript
 ### Installing the package
 
 ```bash
-# Install directly from GitHub
-pip install git+https://github.com/drci-foch/pulmo-cristal.git
+# Install directly from Pypi
+pip install pulmo-cristal
 ```
 
 For development installation:
@@ -130,10 +132,6 @@ csv_exporter.export_csv([donor_data], "/path/to/output/data.csv")
    - Install dependencies separately: `pip install camelot-py[cv] opencv-python-headless ghostscript`
    - Check system dependencies (Ghostscript, etc.)
 
-3. **Processing takes too long**:
-   - Use batch processing with smaller batch sizes
-   - Process files in parallel with multiple workers
-
 ### Testing Camelot Installation
 
 Use this script to test if Camelot is correctly installed:
@@ -206,4 +204,4 @@ See the LICENSE file for details.
 ## Acknowledgments
 
 - This project was developed for pulmonary transplantation research at Hôpital Foch
-- Special thanks to the DRCI (Département de la Recherche Clinique et de l'Innovation)
+- Special thanks to Edouard Sage & Antoine Roux.
