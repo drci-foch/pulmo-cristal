@@ -301,44 +301,6 @@ class EvolutionHemodynamiqueData:
 
         return result
 
-
-# @dataclass
-# class BilanPulmonaireData:
-#     """Pulmonary assessment data."""
-
-#     traumatise_broncho_pulmonaire_actuel: Optional[BooleanValue] = None
-#     lesion_pleurale_traumatique_actuelle: Optional[BooleanValue] = None
-#     radiographie_thoraco_pulmonaire: str = ""
-#     aspirations_tracheo_bronchiques: str = ""
-#     prelevement_bacteriologique: Optional[BooleanValue] = None
-#     fibroscopie_bronchique: Optional[BooleanValue] = None
-
-#     @classmethod
-#     def from_dict(cls, data: Dict[str, str]) -> "BilanPulmonaireData":
-#         """Create a BilanPulmonaireData object from a dictionary."""
-#         result = cls()
-
-#         # Handle potential naming inconsistencies
-#         mapping = {
-#             "radiographie_thoraco-pulmonaire": "radiographie_thoraco_pulmonaire",
-#             "aspirations trachéo-bronchiques": "aspirations_tracheo_bronchiques",
-#         }
-
-#         for field_name, field_value in data.items():
-#             # Map alternative field names
-#             if field_name in mapping:
-#                 field_name = mapping[field_name]
-
-#             if hasattr(result, field_name):
-#                 if field_name in [
-#                     "radiographie_thoraco_pulmonaire",
-#                     "aspirations_tracheo_bronchiques",
-#                 ]:
-#                     setattr(result, field_name, str(field_value).strip())
-#                 else:
-#                     setattr(result, field_name, BooleanValue.from_string(field_value))
-
-
 @dataclass
 class GDSData:
     """Gaz du sang data."""
@@ -718,7 +680,7 @@ class Donneur:
         # Add sub-objects if they exist
         if self.hla:
             result["hla"] = {k: v for k, v in self.hla.__dict__.items()}
-            
+
         if self.gds:
             result["gds"] = {k: v for k, v in self.gds.__dict__.items()}
 
@@ -731,7 +693,6 @@ class Donneur:
             "bilan_infectieux",
             "bilan_hemodynamique",
             "evolution_hemodynamique",
-            "bilan_pulmonaire",
             "bilan_cardiaque_morphologique",
             "thorax",
         ]:
