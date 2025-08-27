@@ -19,7 +19,7 @@ from .base import BaseExtractor
 
 
 class GDSData(dict):
-    """Typed dictionary class for HLA data."""
+    """Typed dictionary class for GDS data."""
 
     pass
 

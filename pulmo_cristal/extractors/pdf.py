@@ -324,7 +324,6 @@ class DonorPDFExtractor(PDFExtractor):
             "antecedents",
             "bilan_infectieux",
             "bilan_hemodynamique",
-            # "bilan_pulmonaire",
             "bilan_cardiaque_morphologique",
             "thorax"
         ]
