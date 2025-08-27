@@ -76,7 +76,7 @@ class BooleanValue(Enum):
 
 @dataclass
 class HLAData:
-    """HLA (Human Leukocyte Antigen) typing data."""
+    """HLA (Human Leukocyte Antigen) typing data avec champs splittés."""
 
     A1: str = ""
     A2: str = ""
@@ -86,6 +86,9 @@ class HLAData:
     C2: str = ""
     DR1: str = ""
     DR2: str = ""
+    # NOUVEAUX CHAMPS SPLITTÉS
+    DQA1: str = ""
+    DQA2: str = ""
     DQB1: str = ""
     DQB2: str = ""
     DP1: str = ""
@@ -161,12 +164,13 @@ class MorphologieData:
         return result
 
 
-@dataclass
+@dataclass  
 class HabitusData:
-    """Lifestyle/habits data."""
+    """Lifestyle/habits data avec quantité de tabagisme."""
 
     alcoolisme: Optional[BooleanValue] = None
     tabagisme: Optional[BooleanValue] = None
+    tabagisme_quantite: Optional[str] = None  # NOUVEAU CHAMP
     toxicomanie: Optional[BooleanValue] = None
 
     @classmethod
@@ -176,10 +180,12 @@ class HabitusData:
 
         for field_name, field_value in data.items():
             if hasattr(result, field_name):
-                setattr(result, field_name, BooleanValue.from_string(field_value))
+                if field_name == "tabagisme_quantite":
+                    result.tabagisme_quantite = str(field_value).strip()
+                else:
+                    setattr(result, field_name, BooleanValue.from_string(field_value))
 
         return result
-
 
 @dataclass
 class AntecedentsData:
@@ -334,34 +340,46 @@ class BilanPulmonaireData:
 
         return result
 
-
 @dataclass
-class ParametresRespiratoiresData:
-    """Respiratory parameters data."""
-
+class GDSData:
+    """Gaz du sang data."""
     pH: Optional[float] = None
     PaCO2: Optional[float] = None
     PaO2: Optional[float] = None
     CO3H: Optional[float] = None
     SaO2: Optional[float] = None
     PEEP: Optional[float] = None
+    fio2_percentage: Optional[float] = None
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, str]) -> "ParametresRespiratoiresData":
-        """Create a ParametresRespiratoiresData object from a dictionary."""
-        result = cls()
 
-        for field_name, field_value in data.items():
-            if hasattr(result, field_name) and field_value:
-                try:
-                    # Try to convert to float
-                    numeric_value = float(str(field_value).replace(",", "."))
-                    setattr(result, field_name, numeric_value)
-                except (ValueError, TypeError):
-                    # Keep as None if conversion fails
-                    pass
+# @dataclass
+# class ParametresRespiratoiresData:
+#     """Respiratory parameters data."""
 
-        return result
+#     pH: Optional[float] = None
+#     PaCO2: Optional[float] = None
+#     PaO2: Optional[float] = None
+#     CO3H: Optional[float] = None
+#     SaO2: Optional[float] = None
+#     PEEP: Optional[float] = None
+#     fio2_percentage: Optional[float] = None  # NEW FIELD: FiO2 percentage
+
+#     @classmethod
+#     def from_dict(cls, data: Dict[str, str]) -> "ParametresRespiratoiresData":
+#         """Create a ParametresRespiratoiresData object from a dictionary."""
+#         result = cls()
+
+#         for field_name, field_value in data.items():
+#             if hasattr(result, field_name) and field_value:
+#                 try:
+#                     # Try to convert to float
+#                     numeric_value = float(str(field_value).replace(",", "."))
+#                     setattr(result, field_name, numeric_value)
+#                 except (ValueError, TypeError):
+#                     # Keep as None if conversion fails
+#                     pass
+
+#         return result
 
 
 @dataclass
@@ -448,7 +466,7 @@ class Donneur:
     bilan_hemodynamique: Optional[BilanHemodynamiqueData] = None
     evolution_hemodynamique: Optional[EvolutionHemodynamiqueData] = None
     bilan_pulmonaire: Optional[BilanPulmonaireData] = None
-    parametres_respiratoires: Optional[ParametresRespiratoiresData] = None
+    # parametres_respiratoires: Optional[ParametresRespiratoiresData] = None
     bilan_cardiaque_morphologique: Optional[BilanCardiaqueData] = None
     thorax: Optional[ThoraxData] = None
 
@@ -593,10 +611,10 @@ class Donneur:
                 data["bilan_pulmonaire"]
             )
 
-        if "parametres_respiratoires" in data:
-            donneur.parametres_respiratoires = ParametresRespiratoiresData.from_dict(
-                data["parametres_respiratoires"]
-            )
+        # if "parametres_respiratoires" in data:
+        #     donneur.parametres_respiratoires = ParametresRespiratoiresData.from_dict(
+        #         data["parametres_respiratoires"]
+        #     )
 
         if "bilan_cardiaque_morphologique" in data:
             donneur.bilan_cardiaque_morphologique = BilanCardiaqueData.from_dict(
@@ -605,6 +623,14 @@ class Donneur:
 
         if "thorax" in data:
             donneur.thorax = ThoraxData.from_dict(data["thorax"])
+
+        if "gds" in data:
+            gds_data = GDSData()
+            for key, value in data["gds"].items():
+                if hasattr(gds_data, key):
+                    setattr(gds_data, key, value)
+            donneur.gds = gds_data
+
 
         # Validate the donor data
         donneur.validate()
@@ -697,6 +723,10 @@ class Donneur:
         if self.hla:
             result["hla"] = {k: v for k, v in self.hla.__dict__.items()}
 
+
+        if self.gds:
+            result["gds"] = {k: v for k, v in self.gds.__dict__.items()}
+
         # Add all other data objects
         for field_name in [
             "serologies",
@@ -707,7 +737,7 @@ class Donneur:
             "bilan_hemodynamique",
             "evolution_hemodynamique",
             "bilan_pulmonaire",
-            "parametres_respiratoires",
+            # "parametres_respiratoires",
             "bilan_cardiaque_morphologique",
             "thorax",
         ]:

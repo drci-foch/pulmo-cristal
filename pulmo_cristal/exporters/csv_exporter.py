@@ -119,66 +119,23 @@ class DonorCSVExporter(BaseExtractor):
                 "path": ["informations_donneur", "commentaire"],
             },
             # HLA data
-            {
-                "name": "hla_A1",
-                "header": "HLA A1",
-                "path": ["informations_donneur", "hla", "A1"],
-            },
-            {
-                "name": "hla_A2",
-                "header": "HLA A2",
-                "path": ["informations_donneur", "hla", "A2"],
-            },
-            {
-                "name": "hla_B1",
-                "header": "HLA B1",
-                "path": ["informations_donneur", "hla", "B1"],
-            },
-            {
-                "name": "hla_B2",
-                "header": "HLA B2",
-                "path": ["informations_donneur", "hla", "B2"],
-            },
-            {
-                "name": "hla_C1",
-                "header": "HLA C1",
-                "path": ["informations_donneur", "hla", "C1"],
-            },
-            {
-                "name": "hla_C2",
-                "header": "HLA C2",
-                "path": ["informations_donneur", "hla", "C2"],
-            },
-            {
-                "name": "hla_DR1",
-                "header": "HLA DR1",
-                "path": ["informations_donneur", "hla", "DR1"],
-            },
-            {
-                "name": "hla_DR2",
-                "header": "HLA DR2",
-                "path": ["informations_donneur", "hla", "DR2"],
-            },
-            {
-                "name": "hla_DQA",
-                "header": "HLA DQA",
-                "path": ["informations_donneur", "hla", "DQA"],
-            },
-            {
-                "name": "hla_DQB",
-                "header": "HLA DQB",
-                "path": ["informations_donneur", "hla", "DQB"],
-            },
-            {
-                "name": "hla_DP1",
-                "header": "HLA DP1",
-                "path": ["informations_donneur", "hla", "DP1"],
-            },
-            {
-                "name": "hla_DP2",
-                "header": "HLA DP2",
-                "path": ["informations_donneur", "hla", "DP2"],
-            },
+            {"name": "hla_A1", "header": "HLA A1", "path": ["informations_donneur", "hla", "A1"]},
+            {"name": "hla_A2", "header": "HLA A2", "path": ["informations_donneur", "hla", "A2"]},
+            {"name": "hla_B1", "header": "HLA B1", "path": ["informations_donneur", "hla", "B1"]},
+            {"name": "hla_B2", "header": "HLA B2", "path": ["informations_donneur", "hla", "B2"]},
+            {"name": "hla_C1", "header": "HLA C1", "path": ["informations_donneur", "hla", "C1"]},
+            {"name": "hla_C2", "header": "HLA C2", "path": ["informations_donneur", "hla", "C2"]},
+            {"name": "hla_DR1", "header": "HLA DR1", "path": ["informations_donneur", "hla", "DR1"]},
+            {"name": "hla_DR2", "header": "HLA DR2", "path": ["informations_donneur", "hla", "DR2"]},
+                    # NOUVELLES COLONNES HLA SPLITTÉES
+            {"name": "hla_DQA1", "header": "HLA DQA1", "path": ["informations_donneur", "hla", "DQA1"]},
+            {"name": "hla_DQA2", "header": "HLA DQA2", "path": ["informations_donneur", "hla", "DQA2"]},
+            {"name": "hla_DQB1", "header": "HLA DQB1", "path": ["informations_donneur", "hla", "DQB1"]},
+            {"name": "hla_DQB2", "header": "HLA DQB2", "path": ["informations_donneur", "hla", "DQB2"]},
+            
+            {"name": "hla_DP1", "header": "HLA DP1", "path": ["informations_donneur", "hla", "DP1"]},
+            {"name": "hla_DP2", "header": "HLA DP2", "path": ["informations_donneur", "hla", "DP2"]},
+            
             # {"name": "hla_extraction_status", "header": "Statut extraction HLA", "path": ["informations_donneur", "hla_extraction_status"]},
             # Serologies
             {
@@ -277,6 +234,8 @@ class DonorCSVExporter(BaseExtractor):
                 "header": "Tabagisme",
                 "path": ["habitus", "tabagisme"],
             },
+            {"name": "tabagisme_quantite", "header": "Tabagisme (PA)", "path": ["habitus", "tabagisme_quantite"]},
+            
             {
                 "name": "toxicomanie",
                 "header": "Toxicomanie",
@@ -403,32 +362,47 @@ class DonorCSVExporter(BaseExtractor):
                 "path": ["bilan_pulmonaire", "fibroscopie_bronchique"],
             },
             # Respiratory parameters
-            {"name": "pH", "header": "pH", "path": ["parametres_respiratoires", "pH"]},
-            {
-                "name": "PaCO2",
-                "header": "PaCO2 (mmHg)",
-                "path": ["parametres_respiratoires", "PaCO2"],
-            },
-            {
-                "name": "PaO2",
-                "header": "PaO2 (mmHg)",
-                "path": ["parametres_respiratoires", "PaO2"],
-            },
-            {
-                "name": "CO3H",
-                "header": "CO3H- (mmol/l)",
-                "path": ["parametres_respiratoires", "CO3H"],
-            },
-            {
-                "name": "SaO2",
-                "header": "SaO2 (%)",
-                "path": ["parametres_respiratoires", "SaO2"],
-            },
-            {
-                "name": "PEEP",
-                "header": "PEEP (cm d'eau)",
-                "path": ["parametres_respiratoires", "PEEP"],
-            },
+
+            {"name": "gds_ph", "header": "pH", "path": ["gds", "pH"]},
+            {"name": "gds_paco2", "header": "PaCO2 (mmHg)", "path": ["gds", "PaCO2"]},
+            {"name": "gds_pao2", "header": "PaO2 (mmHg)", "path": ["gds", "PaO2"]},
+            {"name": "gds_co3h", "header": "CO3H- (mmol/l)", "path": ["gds", "CO3H"]},
+            {"name": "gds_sao2", "header": "SaO2 (%)", "path": ["gds", "SaO2"]},
+            {"name": "gds_peep", "header": "PEEP (cm H2O)", "path": ["gds", "PEEP"]},
+            {"name": "gds_fio2", "header": "FiO2 (%)", "path": ["gds", "fio2_percentage"]},
+
+
+            # {"name": "pH", "header": "pH", "path": ["parametres_respiratoires", "pH"]},
+            # {
+            #     "name": "PaCO2",
+            #     "header": "PaCO2 (mmHg)",
+            #     "path": ["parametres_respiratoires", "PaCO2"],
+            # },
+            # {
+            #     "name": "PaO2",
+            #     "header": "PaO2 (mmHg)",
+            #     "path": ["parametres_respiratoires", "PaO2"],
+            # },
+            # {
+            #     "name": "CO3H",
+            #     "header": "CO3H- (mmol/l)",
+            #     "path": ["parametres_respiratoires", "CO3H"],
+            # },
+            # {
+            #     "name": "SaO2",
+            #     "header": "SaO2 (%)",
+            #     "path": ["parametres_respiratoires", "SaO2"],
+            # },
+            # {
+            #     "name": "PEEP",
+            #     "header": "PEEP (cm d'eau)",
+            #     "path": ["parametres_respiratoires", "PEEP"],
+            # },
+            # {
+            #     "name": "fio2_percentage",
+            #     "header": "Pourcentage FiO2 (%)",
+            #     "path": ["parametres_respiratoires", "fio2_percentage"],
+            # },
             # Cardiac morphological assessment
             {
                 "name": "fraction_d_ejection",
@@ -588,13 +562,7 @@ class DonorCSVExporter(BaseExtractor):
 
     def _format_value(self, value: Any) -> str:
         """
-        Format a value for CSV output.
-
-        Args:
-            value: Value to format
-
-        Returns:
-            Formatted string value
+        Format a value for CSV output with improved decimal handling.
         """
         # Get the latest value if it's a list
         value = self.get_latest_value(value)
@@ -602,13 +570,17 @@ class DonorCSVExporter(BaseExtractor):
         # Handle different value types
         if value is None:
             return ""
-        elif isinstance(value, (int, float)):
-            # Format numbers with comma as decimal separator for European style
-            if isinstance(value, int):
-                return str(value)
+        elif isinstance(value, float):
+            # Pour les valeurs comme pH, garder 2 décimales
+            if 6.0 <= value <= 8.0:  # Probable pH value
+                return f"{value:.2f}".replace(".", ",")
+            # Pour les autres valeurs, garder 1 décimale si significative
+            elif value != int(value):
+                return f"{value:.1f}".replace(".", ",")
             else:
-                # Convert float to string with dot, then replace with comma
-                return str(value).replace(".", ",")
+                return str(int(value))
+        elif isinstance(value, int):
+            return str(value)
         else:
             # Convert to string and clean up
             return str(value).strip()

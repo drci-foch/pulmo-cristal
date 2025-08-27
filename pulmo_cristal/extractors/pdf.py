@@ -10,6 +10,8 @@ import logging
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Tuple, Union
 import re
+from .gds import ImprovedGazDuSangExtractor
+from .hemodynamic import ImprovedHemodynamicExtractor
 
 # Third-party imports
 try:
@@ -283,13 +285,16 @@ class DonorPDFExtractor(PDFExtractor):
             "bilan_infectieux": r"Bilan infectieux",
             "bilan_hemodynamique": r"Bilan hémodynamique",
             "evolution_hemodynamique": r"Evolution hémodynamique",
-            "bilan_pulmonaire": r"Bilan pulmonaire",
+            # "bilan_pulmonaire": r"Bilan pulmonaire",
             "bilan_cardiaque": r"Bilan cardiaque",
         }
 
+        self.gds_extractor = ImprovedGazDuSangExtractor(logger=logger, debug=debug)
+        self.hemo_extractor = ImprovedHemodynamicExtractor(logger=logger, debug=debug)
+
     def extract_donor_data(self, pdf_path: Union[str, Path]) -> Dict[str, Any]:
         """
-        Extract all donor data from a PDF file.
+        Extract all donor data from a PDF file with improved extractors.
 
         Args:
             pdf_path: Path to the donor PDF file
@@ -311,28 +316,26 @@ class DonorPDFExtractor(PDFExtractor):
             "informations_donneur": self._extract_donor_basic_info(),
         }
 
-        # Extract each section
-        for section_name in [
+        # Extract standard sections using existing patterns
+        standard_sections = [
             "serologies",
-            "morphologie",
+            "morphologie", 
             "habitus",
             "antecedents",
             "bilan_infectieux",
             "bilan_hemodynamique",
-            "evolution_hemodynamique",
-            "bilan_pulmonaire",
-            "parametres_respiratoires",
+            # "bilan_pulmonaire",
             "bilan_cardiaque_morphologique",
-            "thorax",
-        ]:
-            pattern_group = section_name
+            "thorax"
+        ]
 
+        for section_name in standard_sections:
             try:
-                patterns = get_pattern_group(pattern_group)
+                patterns = get_pattern_group(section_name)
                 result[section_name] = self._extract_section_data(patterns)
             except KeyError:
                 self.log(
-                    f"Pattern group '{pattern_group}' not found. Skipping section.",
+                    f"Pattern group '{section_name}' not found. Skipping section.",
                     level=logging.WARNING,
                 )
                 result[section_name] = {}
@@ -342,6 +345,48 @@ class DonorPDFExtractor(PDFExtractor):
                     level=logging.ERROR,
                 )
                 result[section_name] = {}
+
+        # =========== EXTRACTION AMÉLIORÉE DES PARAMÈTRES RESPIRATOIRES ===========
+        # Extract GDS data
+        try:
+            gds_data = self.gds_extractor.extract_gds_data_from_pdf(pdf_path)
+            result["gds"] = gds_data
+        except Exception as e:
+            self.log(f"Error extracting GDS data: {str(e)}", level=logging.WARNING)
+            result["gds"] = {}
+
+        # ========== EXTRACTION AMÉLIORÉE DE L'ÉVOLUTION HÉMODYNAMIQUE ===========
+        try:
+            self.log("Extracting hemodynamic evolution using improved extractor")
+            hemo_data = self.hemo_extractor.extract_hemodynamic_evolution(self.get_text())
+            result["evolution_hemodynamique"] = hemo_data
+            
+            # Validation physiologique optionnelle
+            if hemo_data:
+                warnings = self.hemo_extractor.validate_hemodynamic_data(hemo_data)
+                if warnings:
+                    self.log(
+                        f"Hemodynamic validation warnings for {Path(pdf_path).name}: {warnings}", 
+                        level=logging.WARNING
+                    )
+                
+                if self.debug:
+                    self.log(f"Extracted hemodynamic data: {hemo_data}")
+            else:
+                self.log("No hemodynamic evolution data extracted", level=logging.WARNING)
+                
+        except Exception as e:
+            self.log(f"Error extracting hemodynamic evolution data: {str(e)}", level=logging.ERROR)
+            result["evolution_hemodynamique"] = {}
+
+        # Log final extraction summary
+        total_sections = len(standard_sections) + 2  # +2 for GDS and hemodynamic
+        extracted_sections = sum(1 for section in result.values() if isinstance(section, dict) and section)
+        
+        self.log(
+            f"Extraction complete for {Path(pdf_path).name}: "
+            f"{extracted_sections}/{total_sections} sections successfully extracted"
+        )
 
         return result
 
