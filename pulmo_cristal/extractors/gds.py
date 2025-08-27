@@ -603,52 +603,29 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
         return data_entries
 
 
-    def _extract_parameter_value_from_row(
-        self,
-        df: pd.DataFrame,
-        row_idx: int,
-        col_idx: int,
-        param_name: str,
-    ) -> Optional[float]:
-        """
-        Extrait la valeur spécifique d'un paramètre avec recherche étendue.
-        """
-        if row_idx >= len(df) or col_idx >= len(df.columns):
-            return None
-
-        cell_value = str(df.iloc[row_idx, col_idx]).strip()
-
-        if self.debug:
-            print(f"         Analyse cellule [{row_idx}, {col_idx}] pour {param_name}: '{cell_value}'")
-
-        # NOUVELLE LOGIQUE: Recherche étendue si cellule vide
-        search_cells = [cell_value]
+    def _extract_parameter_value_from_row(self, df, row_idx, col_idx, param_name):
+        """Extraction avec priorité aux cellules les plus proches."""
         
-        if not cell_value or cell_value in ["nan", "", "À ajouter"]:
-            # Cherche dans un rayon de 3 lignes autour
-            for offset in [1, -1, 2, -2, 3]:
-                check_row = row_idx + offset
-                if 0 <= check_row < len(df):
-                    next_cell = str(df.iloc[check_row, col_idx]).strip()
-                    if next_cell and next_cell not in ["nan", "", "À ajouter"]:
-                        search_cells.append(next_cell)
-                        if self.debug:
-                            print(f"         → Cellule alternative ligne {check_row}: '{next_cell}'")
-
-        # Teste chaque cellule trouvée
-        for cell_candidate in search_cells:
-            if not cell_candidate:
-                continue
+        # Définir l'ordre de recherche par paramètre
+        if param_name in ["PaCO2", "PaO2"]:
+            # Pour les gaz, chercher d'abord dans la ligne courante, puis ligne suivante
+            search_offsets = [0, 1, -1, 2]
+        else:
+            # Pour autres paramètres, ordre standard
+            search_offsets = [0, 1, -1, 2, -2, 3]
+        
+        for offset in search_offsets:
+            check_row = row_idx + offset
+            if 0 <= check_row < len(df) and col_idx < len(df.columns):
+                cell_value = str(df.iloc[check_row, col_idx]).strip()
                 
-            extracted_value = self._extract_parameter_by_type(cell_candidate, param_name)
-            
-            if extracted_value is not None:
-                if self.debug:
-                    print(f"         → Valeur extraite pour {param_name}: {extracted_value}")
-                return extracted_value
-
-        if self.debug:
-            print(f"         → Aucune valeur valide trouvée pour {param_name}")
+                if cell_value and cell_value not in ["nan", "", "À ajouter"]:
+                    extracted_value = self._extract_parameter_by_type(cell_value, param_name)
+                    
+                    if extracted_value is not None:
+                        if self.debug:
+                            print(f"         → {param_name}: {extracted_value} (ligne {check_row})")
+                        return extracted_value
         
         return None
 
@@ -662,14 +639,21 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
                 if 6.5 <= value <= 8.0:
                     return value
 
-        elif param_name in ["PaCO2", "PaO2"]:
-            # Cherche avec unité mmHg d'abord
-            pressure_match = re.search(r"(\d+(?:\.\d+)?)\s*mmhg", cell_value.lower())
-            if pressure_match:
-                value = float(pressure_match.group(1))
-                if self.debug:
-                    print(f"         → Trouvé {param_name} avec mmHg: {value}")
-                return value
+        elif param_name == "PaCO2":
+            # PaCO2 est typiquement 20-80 mmHg
+            mmhg_match = re.search(r'(\d+(?:\.\d+)?)\s*mmhg', cell_value.lower())
+            if mmhg_match:
+                value = float(mmhg_match.group(1))
+                if 15 <= value <= 100:  # Plage physiologique PaCO2
+                    return value
+        
+        elif param_name == "PaO2":
+            # PaO2 est typiquement 80-600 mmHg
+            mmhg_match = re.search(r'(\d+(?:\.\d+)?)\s*mmhg', cell_value.lower())
+            if mmhg_match:
+                value = float(mmhg_match.group(1))
+                if 60 <= value <= 700:  # Plage physiologique PaO2
+                    return value
             
             # Cherche un nombre seul SEULEMENT si pas d'unité parasite
             if not re.search(r"mmol|%|cm", cell_value.lower()):
@@ -742,7 +726,8 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
             fio2_indicators = [
                 "fio2<100.*pourcentage",
                 "fio2.*<.*100.*pourcentage", 
-                "pourcentage.*:",  # si isolé dans section FiO2<100
+                "pourcentage.*:",
+                  "FiO2<100\s*:\s*[\s\S]*?pourcentage\s*:",  # si isolé dans section FiO2<100
             ]
         else:  # FiO2=100
             fio2_indicators = [
@@ -764,7 +749,7 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
         # ÉTAPE 2: Chercher les pourcentages dans ces lignes et adjacentes
         for row_idx in fio2_indicator_rows:
             # Cherche dans la ligne courante et les 2 suivantes
-            for offset in range(0, 3):
+            for offset in range(-1, 3):
                 check_row = row_idx + offset
                 if check_row >= len(df):
                     continue
@@ -798,21 +783,22 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
 
 
 
-    def _get_fio2_for_column(
-        self,
-        percentages: Dict[int, float],
-        col_idx: int,
-        section_type: str
-    ) -> float:
+    def _get_fio2_for_column(self, percentages: Dict[int, float], col_idx: int, section_type: str) -> float:
         """Détermine le pourcentage FiO2 pour une colonne spécifique."""
+        
+        # Si un pourcentage spécifique a été trouvé pour cette colonne, l'utiliser
         if col_idx in percentages:
             return percentages[col_idx]
-
-        # Valeurs par défaut selon le type
+        
+        # Valeurs par défaut selon le type SEULEMENT si rien n'a été extrait
         if section_type == "FiO2=100":
-            return 100.0
+            return 100.0  # FiO2=100 est toujours 100%
         else:
-            return
+            # Pour FiO2<100, on a un problème si aucun % n'est extrait
+            # Il faut améliorer l'extraction plutôt que deviner
+            if self.debug:
+                print(f"      ⚠️ Aucun pourcentage FiO2 trouvé pour colonne {col_idx} en section {section_type}")
+            return None  # Mieux vaut None que de deviner un mauvais pourcentage
 
 
     def _find_medical_parameter_rows(self, df: pd.DataFrame) -> Dict[str, int]:
