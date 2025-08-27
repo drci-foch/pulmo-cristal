@@ -9,7 +9,7 @@ from .base import BaseExtractor
 from .pdf import PDFExtractor, DonorPDFExtractor
 from .hla import HLAExtractor, HLAData
 from .patterns import get_pattern_group, create_custom_pattern
-from .gds import ImprovedGazDuSangExtractor
+from .gds import ImprovedGazDuSangExtractor, GDSData
 from .hemodynamic import ImprovedHemodynamicExtractor
 
 __all__ = [
@@ -26,5 +26,6 @@ __all__ = [
     "create_custom_pattern",
     # Specialized extractors - NOUVEAUX
     "ImprovedGazDuSangExtractor",
+    "GDSData",
     "ImprovedHemodynamicExtractor",
 ]

@@ -15,26 +15,13 @@ except ImportError:
     camelot = None
 
 
-class BaseExtractor:
-    def __init__(self, logger: Optional[logging.Logger] = None):
-        self.logger = logger or self._create_default_logger()
+from .base import BaseExtractor
 
-    def log(self, message: str, level: int = logging.INFO) -> None:
-        if self.logger:
-            self.logger.log(level, message)
 
-    def _create_default_logger(self) -> logging.Logger:
-        logger = logging.getLogger(f"{self.__class__.__name__}")
-        if not logger.handlers:
-            logger.setLevel(logging.INFO)
-            console_handler = logging.StreamHandler()
-            console_handler.setLevel(logging.INFO)
-            formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
-            console_handler.setFormatter(formatter)
-            logger.addHandler(console_handler)
-        return logger
+class GDSData(dict):
+    """Typed dictionary class for HLA data."""
+
+    pass
 
 
 class ImprovedGazDuSangExtractor(BaseExtractor):
