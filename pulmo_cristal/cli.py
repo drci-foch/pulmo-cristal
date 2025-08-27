@@ -265,9 +265,9 @@ def extract_command(args: argparse.Namespace, logger: logging.Logger) -> int:
                 # Extract donor data
                 donor_data = donor_extractor.extract_donor_data(pdf_file)
 
-                # Extract HLA data
+                # Extract HLA & GDS data
                 hla_data, status = hla_extractor.extract_hla_data(pdf_file)
-                gds_data = gds_extractor._select_best_data_smart(pdf_file)
+                gds_data = gds_extractor.extract_gds_data_from_pdf(pdf_file)
 
 
                 # Add HLA data to donor data
