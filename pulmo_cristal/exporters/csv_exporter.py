@@ -371,38 +371,6 @@ class DonorCSVExporter(BaseExtractor):
             {"name": "gds_peep", "header": "PEEP (cm H2O)", "path": ["gds", "PEEP"]},
             {"name": "gds_fio2", "header": "FiO2 (%)", "path": ["gds", "fio2_percentage"]},
 
-
-            # {"name": "pH", "header": "pH", "path": ["parametres_respiratoires", "pH"]},
-            # {
-            #     "name": "PaCO2",
-            #     "header": "PaCO2 (mmHg)",
-            #     "path": ["parametres_respiratoires", "PaCO2"],
-            # },
-            # {
-            #     "name": "PaO2",
-            #     "header": "PaO2 (mmHg)",
-            #     "path": ["parametres_respiratoires", "PaO2"],
-            # },
-            # {
-            #     "name": "CO3H",
-            #     "header": "CO3H- (mmol/l)",
-            #     "path": ["parametres_respiratoires", "CO3H"],
-            # },
-            # {
-            #     "name": "SaO2",
-            #     "header": "SaO2 (%)",
-            #     "path": ["parametres_respiratoires", "SaO2"],
-            # },
-            # {
-            #     "name": "PEEP",
-            #     "header": "PEEP (cm d'eau)",
-            #     "path": ["parametres_respiratoires", "PEEP"],
-            # },
-            # {
-            #     "name": "fio2_percentage",
-            #     "header": "Pourcentage FiO2 (%)",
-            #     "path": ["parametres_respiratoires", "fio2_percentage"],
-            # },
             # Cardiac morphological assessment
             {
                 "name": "fraction_d_ejection",

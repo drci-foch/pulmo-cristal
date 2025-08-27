@@ -352,7 +352,6 @@ class DonorPDFExtractor(PDFExtractor):
             gds_data = self.gds_extractor.extract_gds_data(self.get_text())
             print(f"DEBUG GDS: {gds_data}")  # Ligne de debug
             result["gds"] = gds_data
-            result["parametres_respiratoires"] = gds_data  # Aussi ici
         except Exception as e:
             self.log(f"Error extracting GDS data: {str(e)}", level=logging.WARNING)
             result["gds"] = {}

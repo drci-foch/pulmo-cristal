@@ -187,33 +187,6 @@ BILAN_PULMONAIRE_PATTERNS = {
     ),
 }
 
-# Respiratory parameters patterns - these may have multiple values so we extract the last one
-# PARAMETRES_RESPIRATOIRES_PATTERNS = {
-#     # Pattern pour pH avec support des décimales
-#     "pH": re.compile(r"pH\s+[\d\s]+\s*(\d+\.\d+)(?:\s+(\d+\.\d+))?", DEFAULT_FLAGS),
-    
-#     # Pattern pour PaCO2 - dernière valeur
-#     "PaCO2": re.compile(r"PaCO2\s+(?:[\d\s]*mmHg\s*)*(\d+(?:\.\d+)?)\s*mmHg", DEFAULT_FLAGS),
-    
-#     # Pattern pour PaO2 - dernière valeur  
-#     "PaO2": re.compile(r"PaO2\s+(?:[\d\s]*mmHg\s*)*(\d+(?:\.\d+)?)\s*mmHg", DEFAULT_FLAGS),
-    
-#     # Pattern pour CO3H- - dernière valeur
-#     "CO3H": re.compile(r"CO3H-\s+(?:[\d\s]*mmol/l\s*)*(\d+(?:\.\d+)?)\s*mmol/l", DEFAULT_FLAGS),
-    
-#     # Pattern pour SaO2 - dernière valeur
-#     "SaO2": re.compile(r"SaO2\s+(?:[\d\s]*%\s*)*(\d+(?:\.\d+)?)\s*%", DEFAULT_FLAGS),
-    
-#     # Pattern pour PEEP - dernière valeur
-#     "PEEP": re.compile(r"PEEP\s+(?:[\d\s]*cm\s*d'eau\s*)*(\d+(?:\.\d+)?)\s*cm\s*d'eau", DEFAULT_FLAGS),
-    
-#     "fio2_percentage": re.compile(
-#         r"FiO2(?:<100|=100)?\s*:?\s*(?:pourcentage\s*:?)?\s*(\d+(?:\.\d+)?)\s*%", 
-#         DEFAULT_FLAGS
-#     ),
-
-# }
-
 # Cardiac morphological assessment patterns
 BILAN_CARDIAQUE_PATTERNS = {
     "fraction_d_ejection": re.compile(r"Fraction d'éjection\s*([^\n]+)", DEFAULT_FLAGS),
@@ -264,7 +237,7 @@ ALL_PATTERNS = {
     "bilan_hemodynamique": BILAN_HEMODYNAMIQUE_PATTERNS,
     "evolution_hemodynamique": EVOLUTION_HEMODYNAMIQUE_PATTERNS,
     "bilan_pulmonaire": BILAN_PULMONAIRE_PATTERNS,
-    # "parametres_respiratoires": PARAMETRES_RESPIRATOIRES_PATTERNS,
+
     "bilan_cardiaque_morphologique": BILAN_CARDIAQUE_PATTERNS,
     "thorax": THORAX_PATTERNS,
 }

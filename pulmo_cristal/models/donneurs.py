@@ -464,8 +464,7 @@ class Donneur:
     bilan_infectieux: Optional[BilanInfectieuxData] = None
     bilan_hemodynamique: Optional[BilanHemodynamiqueData] = None
     evolution_hemodynamique: Optional[EvolutionHemodynamiqueData] = None
-    # bilan_pulmonaire: Optional[BilanPulmonaireData] = None
-    # parametres_respiratoires: Optional[ParametresRespiratoiresData] = None
+    gds: Optional[GDSData] = None
     bilan_cardiaque_morphologique: Optional[BilanCardiaqueData] = None
     thorax: Optional[ThoraxData] = None
 
@@ -605,16 +604,6 @@ class Donneur:
                 data["evolution_hemodynamique"]
             )
 
-        # if "bilan_pulmonaire" in data:
-        #     donneur.bilan_pulmonaire = BilanPulmonaireData.from_dict(
-        #         data["bilan_pulmonaire"]
-        #     )
-
-        # if "parametres_respiratoires" in data:
-        #     donneur.parametres_respiratoires = ParametresRespiratoiresData.from_dict(
-        #         data["parametres_respiratoires"]
-        #     )
-
         if "bilan_cardiaque_morphologique" in data:
             donneur.bilan_cardiaque_morphologique = BilanCardiaqueData.from_dict(
                 data["bilan_cardiaque_morphologique"]
@@ -737,7 +726,6 @@ class Donneur:
             "bilan_hemodynamique",
             "evolution_hemodynamique",
             "bilan_pulmonaire",
-            # "parametres_respiratoires",
             "bilan_cardiaque_morphologique",
             "thorax",
         ]:
