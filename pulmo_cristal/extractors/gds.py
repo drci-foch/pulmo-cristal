@@ -812,8 +812,7 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
         if section_type == "FiO2=100":
             return 100.0
         else:
-            return 21.0  # Air ambiant par défaut
-
+            return
 
 
     def _find_medical_parameter_rows(self, df: pd.DataFrame) -> Dict[str, int]:
