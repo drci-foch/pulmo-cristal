@@ -107,6 +107,7 @@ MORPHOLOGY_PATTERNS = {
 HABITUS_PATTERNS = {
     "alcoolisme": re.compile(r"Alcoolisme\s*([^\n]+)", DEFAULT_FLAGS),
     "tabagisme": re.compile(r"Tabagisme\s*([^\n]+)", DEFAULT_FLAGS),
+    "tabagisme_quantite": re.compile(r"Si oui, nombre de paquets-années\s*(\d+)", DEFAULT_FLAGS | re.IGNORECASE),
     "toxicomanie": re.compile(r"Toxicomanie\s*([^\n]+)", DEFAULT_FLAGS),
 }
 
@@ -151,18 +152,17 @@ BILAN_HEMODYNAMIQUE_PATTERNS = {
 
 # Hemodynamic evolution patterns - these may have multiple values so we extract the last one
 EVOLUTION_HEMODYNAMIQUE_PATTERNS = {
-    "dopamine": re.compile(
-        r"dopamine\s+(?:.*?(\d+(?:\.\d+)?)\s*gamma\.k\/mn)+", DEFAULT_FLAGS
-    ),
-    "dobutamine": re.compile(
-        r"dobutamine\s+(?:.*?(\d+(?:\.\d+)?)\s*gamma\.k\/mn)+", DEFAULT_FLAGS
-    ),
-    "adrenaline": re.compile(
-        r"\badrénaline\b\s+(?:.*?(\d+(?:\.\d+)?)\s*mg\/h)+", DEFAULT_FLAGS
-    ),
-    "noradrenaline": re.compile(
-        r"\bnoradrénaline\s+(?:.*?(\d+(?:\.\d+)?)\s*mg\/h)+", DEFAULT_FLAGS
-    ),
+    # Dopamine - dernière valeur dans la ligne
+    "dopamine": re.compile(r"dopamine[^\n]*?(\d+(?:\.\d+)?)\s*gamma\.k/mn(?:[^\n]*gamma\.k/mn\s*)*$", re.MULTILINE | DEFAULT_FLAGS),
+    
+    # Dobutamine - dernière valeur dans la ligne  
+    "dobutamine": re.compile(r"dobutamine[^\n]*?(\d+(?:\.\d+)?)\s*gamma\.k/mn(?:[^\n]*gamma\.k/mn\s*)*$", re.MULTILINE | DEFAULT_FLAGS),
+    
+    # Adrénaline - dernière valeur dans la ligne
+    "adrenaline": re.compile(r"adrénaline[^\n]*?(\d+(?:\.\d+)?)\s*mg/h(?:[^\n]*mg/h\s*)*$", re.MULTILINE | DEFAULT_FLAGS),
+    
+    # Noradrénaline - dernière valeur dans la ligne
+    "noradrenaline": re.compile(r"noradrénaline[^\n]*?(\d+(?:\.\d+)?)\s*mg/h(?:[^\n]*mg/h\s*)*$", re.MULTILINE | DEFAULT_FLAGS),
 }
 
 # Pulmonary assessment patterns
@@ -189,12 +189,29 @@ BILAN_PULMONAIRE_PATTERNS = {
 
 # Respiratory parameters patterns - these may have multiple values so we extract the last one
 PARAMETRES_RESPIRATOIRES_PATTERNS = {
-    "pH": re.compile(r"pH\s+(?:.*?(\d+(?:\.\d+)?)\s*)+", DEFAULT_FLAGS),
-    "PaCO2": re.compile(r"PaCO2\s+(?:.*?(\d+(?:\.\d+)?)\s*mmHg)+", DEFAULT_FLAGS),
-    "PaO2": re.compile(r"PaO2\s+(?:.*?(\d+(?:\.\d+)?)\s*mmHg)+", DEFAULT_FLAGS),
-    "CO3H": re.compile(r"CO3H-\s+(?:.*?(\d+(?:\.\d+)?)\s*mmol\/l)+", DEFAULT_FLAGS),
-    "SaO2": re.compile(r"SaO2\s+(?:.*?(\d+(?:\.\d+)?)\s*%)+", DEFAULT_FLAGS),
-    "PEEP": re.compile(r"PEEP\s+(?:.*?(\d+(?:\.\d+)?)\s*cm d'eau)+", DEFAULT_FLAGS),
+    # Pattern pour pH avec support des décimales
+    "pH": re.compile(r"pH\s+[\d\s]+\s*(\d+\.\d+)(?:\s+(\d+\.\d+))?", DEFAULT_FLAGS),
+    
+    # Pattern pour PaCO2 - dernière valeur
+    "PaCO2": re.compile(r"PaCO2\s+(?:[\d\s]*mmHg\s*)*(\d+(?:\.\d+)?)\s*mmHg", DEFAULT_FLAGS),
+    
+    # Pattern pour PaO2 - dernière valeur  
+    "PaO2": re.compile(r"PaO2\s+(?:[\d\s]*mmHg\s*)*(\d+(?:\.\d+)?)\s*mmHg", DEFAULT_FLAGS),
+    
+    # Pattern pour CO3H- - dernière valeur
+    "CO3H": re.compile(r"CO3H-\s+(?:[\d\s]*mmol/l\s*)*(\d+(?:\.\d+)?)\s*mmol/l", DEFAULT_FLAGS),
+    
+    # Pattern pour SaO2 - dernière valeur
+    "SaO2": re.compile(r"SaO2\s+(?:[\d\s]*%\s*)*(\d+(?:\.\d+)?)\s*%", DEFAULT_FLAGS),
+    
+    # Pattern pour PEEP - dernière valeur
+    "PEEP": re.compile(r"PEEP\s+(?:[\d\s]*cm\s*d'eau\s*)*(\d+(?:\.\d+)?)\s*cm\s*d'eau", DEFAULT_FLAGS),
+    
+    "fio2_percentage": re.compile(
+        r"FiO2(?:<100|=100)?\s*:?\s*(?:pourcentage\s*:?)?\s*(\d+(?:\.\d+)?)\s*%", 
+        DEFAULT_FLAGS
+    ),
+
 }
 
 # Cardiac morphological assessment patterns
