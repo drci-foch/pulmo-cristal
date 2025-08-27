@@ -350,6 +350,7 @@ class DonorPDFExtractor(PDFExtractor):
         # Extract GDS data
         try:
             gds_data = self.gds_extractor.extract_gds_data_from_pdf(pdf_path)
+            print(f"DEBUG GDS: {gds_data}")  # Ligne de debug
             result["gds"] = gds_data
         except Exception as e:
             self.log(f"Error extracting GDS data: {str(e)}", level=logging.WARNING)

@@ -338,7 +338,6 @@ class BilanPulmonaireData:
                 else:
                     setattr(result, field_name, BooleanValue.from_string(field_value))
 
-        return result
 
 @dataclass
 class GDSData:
@@ -625,6 +624,7 @@ class Donneur:
             donneur.thorax = ThoraxData.from_dict(data["thorax"])
 
         if "gds" in data:
+            print(f"DEBUG: GDS data found: {data['gds']}")  # Debug
             gds_data = GDSData()
             for key, value in data["gds"].items():
                 if hasattr(gds_data, key):

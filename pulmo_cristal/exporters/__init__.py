@@ -15,4 +15,5 @@ __all__ = [
     # JSON exporter
     "DonorJSONExporter",
     "generate_json_filename",
+    "GDSData",
 ]

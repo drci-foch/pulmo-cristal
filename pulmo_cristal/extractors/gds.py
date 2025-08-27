@@ -964,7 +964,7 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
             "SaO2": (70, 100),
             "CO3H": (10, 35),
             "PEEP": (0, 20),
-            "fio2_percentage": (21, 100)
+            "fio2_percentage": (0, 100)
         }
 
         for param, (min_val, max_val) in ranges.items():
