@@ -19,7 +19,8 @@ from .donneurs import (
     BilanHemodynamiqueData,
     EvolutionHemodynamiqueData,
     BilanPulmonaireData,
-    ParametresRespiratoiresData,
+    GDSData,
+    # ParametresRespiratoiresData,
     BilanCardiaqueData,
     ThoraxData,
 )
@@ -41,7 +42,8 @@ __all__ = [
     "BilanHemodynamiqueData",
     "EvolutionHemodynamiqueData",
     "BilanPulmonaireData",
-    "ParametresRespiratoiresData",
+    "GDSData",
+    # "ParametresRespiratoiresData",
     "BilanCardiaqueData",
     "ThoraxData",
 ]
