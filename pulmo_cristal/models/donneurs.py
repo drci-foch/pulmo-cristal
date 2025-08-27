@@ -350,6 +350,14 @@ class GDSData:
     PEEP: Optional[float] = None
     fio2_percentage: Optional[float] = None
 
+    def is_valid(self) -> bool:
+        """Check if the GDS data has meaningful values."""
+        required_fields = ["fio2_percentage", "pH", "PaCO2", "PaO2", "SaO2", "CO3H", "PEEP"]
+        return all(
+            getattr(self, field) not in ("", "À AJOUTER", "INCONNU")
+            for field in required_fields
+        )
+
 
 # @dataclass
 # class ParametresRespiratoiresData:
@@ -613,7 +621,6 @@ class Donneur:
             donneur.thorax = ThoraxData.from_dict(data["thorax"])
 
         if "gds" in data:
-            print(f"DEBUG: GDS data found: {data['gds']}")  # Debug
             gds_data = GDSData()
             for key, value in data["gds"].items():
                 if hasattr(gds_data, key):
@@ -711,8 +718,7 @@ class Donneur:
         # Add sub-objects if they exist
         if self.hla:
             result["hla"] = {k: v for k, v in self.hla.__dict__.items()}
-
-
+            
         if self.gds:
             result["gds"] = {k: v for k, v in self.gds.__dict__.items()}
 

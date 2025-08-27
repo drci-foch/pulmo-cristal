@@ -349,7 +349,7 @@ class DonorPDFExtractor(PDFExtractor):
         # =========== EXTRACTION AMÉLIORÉE DES PARAMÈTRES RESPIRATOIRES ===========
         # Extract GDS data
         try:
-            gds_data = self.gds_extractor.extract_gds_data(self.get_text())
+            gds_data = self.gds_extractor.extract_gds_data(pdf_path)
             print(f"DEBUG GDS: {gds_data}")  # Ligne de debug
             result["gds"] = gds_data
         except Exception as e:
