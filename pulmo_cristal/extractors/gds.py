@@ -8,6 +8,15 @@ import PyPDF2
 from pathlib import Path
 
 try:
+    import pdfplumber
+    print(f"✅ pdfplumber présent")
+    HAS_PDFPLUMBER = True
+except ImportError:
+    print("❌ pdfplumber non installé (fallback tronquage désactivé)")
+    pdfplumber = None
+    HAS_PDFPLUMBER = False
+
+try:
     import camelot
     print(f"✅ Camelot version: {camelot.__version__}")
 except ImportError:
@@ -91,68 +100,40 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
 
         return best_table
 
-
-    def _process_gds_table_smart(self, table) -> Dict[str, Any]:
-        """Version corrigée avec gestion des cas sans split."""
+    def _process_gds_table_smart(self, table, pdf_path: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Version hybride : méthode standard + fallback pour cas complexes.
+        """
         df = table.df.copy()
 
         if self.debug:
             print(f"\n🔍 Traitement table GDS:")
             print(f"   Shape originale: {df.shape}")
 
-        # Étape 1: Extrait les headers (dates/heures)
-        headers = self._extract_headers(df)
-
-        # Étape 2: Trouve la ligne de séparation FiO2=100
-        split_row = self._find_fio2_100_split(df)
-
-        if split_row is None:
-            # Cas particulier : pas de split trouvé, traite tout comme une section
-            self.log("Aucun split FiO2=100 détecté, analyse comme section mixte", level=logging.WARNING)
-            return self._process_mixed_section(df, headers)
-
-        # Étape 3: Divise la table
-        fio2_less_100_df = df.iloc[:split_row].copy()
-        fio2_100_df = df.iloc[split_row:].copy()
-
-        # Important: Ajoute les headers aux deux sections
-        if len(headers) > 0:
-            header_rows = df.iloc[:2].copy()  # Lignes dates et heures
+        # ÉTAPE 1: Essaie d'abord la méthode standard (version GitHub)
+        try:
+            result = self._process_gds_table_standard(df, pdf_path)
             
-            # Pour FiO2=100, ajoute les headers au début
-            fio2_100_df = pd.concat([header_rows, fio2_100_df], ignore_index=True)
-
+            # Vérifie si l'extraction standard a réussi
+            if result and len(result) > 0:
+                if self.debug:
+                    print(f"✅ Méthode standard réussie: {len(result)} paramètres extraits")
+                return result
+            else:
+                if self.debug:
+                    print(f"⚠️ Méthode standard a échoué ou donné des résultats vides")
+        
+        except Exception as e:
+            if self.debug:
+                print(f"❌ Erreur méthode standard: {e}")
+        
+        # ÉTAPE 2: Si la méthode standard échoue, utilise la méthode avancée
         if self.debug:
-            print(f"   Split à la ligne {split_row}")
-            print(f"   FiO2<100 shape: {fio2_less_100_df.shape}")
-            print(f"   FiO2=100 shape: {fio2_100_df.shape} (headers ajoutés)")
-
-        # Étape 4: Traite chaque section si elle n'est pas vide
-        all_data = []
+            print(f"🔄 Passage à la méthode avancée...")
         
-        if len(fio2_less_100_df) > 0:
-            fio2_less_100_clean, fio2_less_100_headers = self._remove_empty_columns_per_section(
-                fio2_less_100_df, headers, "FiO2<100"
-            )
-            fio2_less_100_data = self._extract_section_data_smart(
-                fio2_less_100_clean, fio2_less_100_headers, "FiO2<100"
-            )
-            all_data.extend(fio2_less_100_data)
-        
-        if len(fio2_100_df) > 0:
-            fio2_100_clean, fio2_100_headers = self._remove_empty_columns_per_section(
-                fio2_100_df, headers, "FiO2=100"
-            )
-            fio2_100_data = self._extract_section_data_smart(
-                fio2_100_clean, fio2_100_headers, "FiO2=100"
-            )
-            all_data.extend(fio2_100_data)
+        return self._process_gds_table_advanced(df, pdf_path)
 
-        # Étape 5: Sélectionne les meilleures données
-        if all_data:
-            return self._select_best_data_smart(all_data)
-        else:
-            return {}
+
         
 
 
@@ -308,46 +289,66 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
         return None
 
 
-
     def _extract_headers(self, df: pd.DataFrame) -> List[Dict[str, str]]:
-        """
-        Extrait les headers (dates/heures) de la table.
-
-        Returns:
-            Liste de dictionnaires avec 'date', 'time', 'column_index'
-        """
+        """Version corrigée extraction headers."""
         headers = []
 
-        # Cherche dans les premières lignes
-        for row_idx in range(min(3, len(df))):
+        if self.debug:
+            print(f"   📅 Recherche headers dans les {min(6, len(df))} premières lignes")
+
+        # Cherche spécifiquement les lignes avec timestamps multiples
+        for row_idx in range(min(6, len(df))):
             row = df.iloc[row_idx]
+            row_text = ' '.join(str(cell) for cell in row if str(cell).strip())
+            
+            # Pattern pour plusieurs timestamps dans une ligne
+            datetime_matches = re.findall(r'(\d{2}/\d{2}/\d{4})\s+(\d{2}:\d{2})', row_text)
+            
+            if len(datetime_matches) >= 2:
+                if self.debug:
+                    print(f"      📅 Ligne timestamps trouvée {row_idx}: {row_text}")
+                
+                for i, (date, time) in enumerate(datetime_matches):
+                    col_idx = i + 1  # Skip colonne 0 (labels)
+                    if col_idx < len(df.columns):
+                        headers.append({
+                            'column_index': col_idx,
+                            'date': date,
+                            'time': time
+                        })
+                        if self.debug:
+                            print(f"         → Header col {col_idx}: {date} {time}")
+                break
+        
+        # Fallback : cherche individuellement
+        if not headers:
+            for row_idx in range(min(6, len(df))):
+                row = df.iloc[row_idx]
+                
+                for col_idx, cell in enumerate(row):
+                    cell_str = str(cell).strip()
+                    if not cell_str or cell_str == 'nan':
+                        continue
+                    
+                    date_match = re.search(r'(\d{2}/\d{2}/\d{4})', cell_str)
+                    time_match = re.search(r'(\d{2}:\d{2})', cell_str)
+                    
+                    if date_match or time_match:
+                        header_entry = next(
+                            (h for h in headers if h['column_index'] == col_idx), None
+                        )
+                        
+                        if header_entry is None:
+                            header_entry = {'column_index': col_idx, 'date': '', 'time': ''}
+                            headers.append(header_entry)
+                        
+                        if date_match:
+                            header_entry['date'] = date_match.group(1)
+                        if time_match:
+                            header_entry['time'] = time_match.group(1)
 
-            for col_idx, cell in enumerate(row):
-                cell_str = str(cell).strip()
-
-                if not cell_str or cell_str == 'nan':
-                    continue
-
-                # Cherche des dates
-                date_match = re.search(r'(\d{2}/\d{2}/\d{4})', cell_str)
-                time_match = re.search(r'(\d{2}:\d{2})', cell_str)
-
-                if date_match or time_match:
-                    # Trouve ou crée l'entrée header pour cette colonne
-                    header_entry = next(
-                        (h for h in headers if h['column_index'] == col_idx), None
-                    )
-
-                    if header_entry is None:
-                        header_entry = {'column_index': col_idx, 'date': '', 'time': ''}
-                        headers.append(header_entry)
-
-                    if date_match:
-                        header_entry['date'] = date_match.group(1)
-                    if time_match:
-                        header_entry['time'] = time_match.group(1)
-
-        # Trie par index de colonne
+        # Filtre et trie
+        headers = [h for h in headers if h['date'] or h['time']]
         headers.sort(key=lambda x: x['column_index'])
 
         if self.debug:
@@ -357,79 +358,72 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
 
         return headers
 
+
     def _find_fio2_100_split(self, df: pd.DataFrame) -> Optional[int]:
-        """Trouve la VRAIE ligne de séparation FiO2=100, pas le titre général."""
+        """Trouve la VRAIE ligne de données FiO2=100, pas le titre général."""
         
         if self.debug:
             print(f"   🔍 Recherche du split FiO2=100 dans {len(df)} lignes")
-            # Debug: affiche quelques lignes pour comprendre la structure
             for i in range(min(len(df), 12)):
                 row_text = ' '.join(str(cell) for cell in df.iloc[i] if str(cell).strip())[:100]
                 print(f"      Ligne {i}: {row_text}")
         
-        # ÉTAPE 1: Cherche la ligne qui marque le DÉBUT des données FiO2=100
-        # Cette ligne contient souvent "FiO2=100" ET "pH" ou d'autres paramètres
-        for idx in range(1, len(df)):  # Skip ligne 0 (titre général)
+        # ÉTAPE 1: Priorité ABSOLUE aux lignes avec "FiO2=100" ET des valeurs médicales
+        for idx in range(1, len(df)):
             row_text = ' '.join(str(cell) for cell in df.iloc[idx] if str(cell).strip()).lower()
             
-            # Patterns spécifiques pour la ligne de transition
-            transition_patterns = [
-                r'fio2\s*=\s*100.*ph',      # "FiO2=100 : pH" 
-                r'fio2\s*=\s*100\s*:',      # "FiO2=100 :"
-                r'^fio2\s*=\s*100\s*$',     # Ligne avec juste "FiO2=100"
-                r'.*fio2\s*=\s*100.*',      # Toute ligne contenant "FiO2=100"
-            ]
+            # Skip explicitement les titres généraux 
+            if any(title in row_text for title in [
+                'gaz du sang fio2', 'dossier du donneur', 'cristal'
+            ]):
+                if self.debug:
+                    print(f"      ⏭️  Ligne {idx} ignorée (titre): {row_text[:60]}")
+                continue
             
-            for pattern in transition_patterns:
-                if re.search(pattern, row_text):
+            # Cherche "FiO2=100" avec des valeurs numériques dans la MÊME ligne
+            if 'fio2=100' in row_text:
+                # Vérifie la présence de valeurs médicales dans cette ligne
+                has_medical_values = bool(re.search(r'\d+(?:\.\d+)?\s*(?:mmhg|mmol|%|cm)', row_text))
+                has_ph_values = bool(re.search(r'[67]\.\d{2}', row_text))
+                
+                if has_medical_values or has_ph_values:
                     if self.debug:
                         print(f"   ✅ Split FiO2=100 trouvé ligne {idx}: {row_text[:80]}")
                     return idx
-        
-        # ÉTAPE 2: Méthode alternative - cherche le changement de structure
-        # Après les données FiO2<100, il y a souvent une ligne différente avant FiO2=100
-        for idx in range(2, len(df) - 2):
-            current_row = ' '.join(str(cell) for cell in df.iloc[idx] if str(cell).strip()).lower()
-            next_row = ' '.join(str(cell) for cell in df.iloc[idx + 1] if str(cell).strip()).lower()
-            
-            # Cherche une ligne avec "fio2=100" suivie d'une ligne avec des paramètres
-            if ('fio2=100' in current_row and 
-                any(param in next_row for param in ['ph', 'paco2', 'pao2', 'mmhg'])):
-                if self.debug:
-                    print(f"   ✅ Split alternatif ligne {idx}: {current_row[:60]}")
-                return idx
-                
-        # ÉTAPE 3: Cherche par analyse de contenu - détecte le changement de pattern
-        # Les lignes FiO2<100 ont des données, puis il y a une transition
-        data_lines = []
-        for idx in range(1, len(df)):
-            row_text = ' '.join(str(cell) for cell in df.iloc[idx] if str(cell).strip())
-            
-            # Compte les données médicales dans cette ligne
-            medical_count = len(re.findall(r'\d+(?:\.\d+)?\s*(?:mmhg|mmol|%|cm)', row_text.lower()))
-            medical_count += len(re.findall(r'\d\.\d{2}', row_text))  # pH
-            
-            data_lines.append((idx, medical_count, row_text.lower()))
-            
-            if self.debug and medical_count > 0:
-                print(f"      Ligne {idx}: {medical_count} valeurs médicales")
-        
-        # Cherche le point où le pattern change
-        for i in range(1, len(data_lines) - 1):
-            idx, count, text = data_lines[i]
-            
-            # Si cette ligne contient "fio2=100" et que les lignes suivantes ont des données
-            if 'fio2=100' in text and count == 0:
-                # Vérifie que les lignes suivantes ont des données
-                following_data = sum(data_lines[j][1] for j in range(i + 1, min(i + 4, len(data_lines))))
-                if following_data > 3:  # Au moins quelques paramètres dans les lignes suivantes
+                else:
                     if self.debug:
-                        print(f"   ✅ Split par analyse ligne {idx}: changement de pattern détecté")
+                        print(f"      ⏭️  Ligne {idx} FiO2=100 sans valeurs: {row_text[:60]}")
+        
+        # ÉTAPE 2: Fallback - cherche "FiO2=100" suivi de données dans les colonnes
+        for idx in range(2, len(df) - 1):
+            row_text = ' '.join(str(cell) for cell in df.iloc[idx] if str(cell).strip()).lower()
+            
+            if 'fio2=100' in row_text and 'gaz du sang' not in row_text:
+                # Vérifie les données dans les colonnes de cette ligne
+                row_data = df.iloc[idx]
+                has_numeric_data = False
+                
+                for col_idx in range(1, len(row_data)):
+                    cell_value = str(row_data.iloc[col_idx]).strip()
+                    if cell_value and cell_value != 'nan':
+                        if re.search(r'\d+(?:\.\d+)?\s*(?:mmhg|mmol|%|cm)', cell_value.lower()):
+                            has_numeric_data = True
+                            break
+                        if re.search(r'[67]\.\d{2}', cell_value):
+                            has_numeric_data = True
+                            break
+                
+                if has_numeric_data:
+                    if self.debug:
+                        print(f"   ✅ Split FiO2=100 trouvé ligne {idx}: {row_text[:80]}")
                     return idx
         
         if self.debug:
             print("   ❌ Aucun split FiO2=100 trouvé")
         return None
+
+
+
 
     def _remove_empty_columns_per_section(
         self,
@@ -949,3 +943,306 @@ class ImprovedGazDuSangExtractor(BaseExtractor):
 
 
 
+    def _process_gds_table_standard(self, df: pd.DataFrame, pdf_path: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Méthode standard (version GitHub) pour la plupart des cas.
+        """
+        # Étape 1: Extrait les headers
+        headers = self._extract_headers(df)
+        
+        # Étape 2: Trouve le split
+        split_row = self._find_fio2_100_split(df)
+        
+        if split_row is None:
+            # Pas de split trouvé, analyse mixte classique
+            return self._process_mixed_section(df, headers)
+        
+        # Split trouvé, traite les deux sections
+        fio2_less_100_df = df.iloc[:split_row].copy()
+        fio2_100_df = df.iloc[split_row:].copy()
+        
+        # Ajoute les headers à FiO2=100
+        if len(headers) > 0:
+            header_rows = df.iloc[:2].copy()
+            fio2_100_df = pd.concat([header_rows, fio2_100_df], ignore_index=True)
+        
+        all_data = []
+        
+        # Traite FiO2<100
+        if len(fio2_less_100_df) > 0:
+            fio2_less_100_clean, fio2_less_100_headers = self._remove_empty_columns_per_section(
+                fio2_less_100_df, headers, "FiO2<100"
+            )
+            fio2_less_100_data = self._extract_section_data_smart(
+                fio2_less_100_clean, fio2_less_100_headers, "FiO2<100"
+            )
+            all_data.extend(fio2_less_100_data)
+        
+        # Traite FiO2=100
+        if len(fio2_100_df) > 0:
+            fio2_100_clean, fio2_100_headers = self._remove_empty_columns_per_section(
+                fio2_100_df, headers, "FiO2=100"
+            )
+            fio2_100_data = self._extract_section_data_smart(
+                fio2_100_clean, fio2_100_headers, "FiO2=100"
+            )
+            all_data.extend(fio2_100_data)
+        
+        if all_data:
+            return self._select_best_data_smart(all_data)
+        else:
+            return {}
+
+
+    def _process_gds_table_advanced(self, df: pd.DataFrame, pdf_path: Optional[str] = None, page_num: int = 1) -> Dict[str, Any]:
+        """
+        Méthode avancée pour les cas complexes avec récupération PDF.
+        """
+        # Étape 1: Extrait les headers avec méthode améliorée
+        headers = self._extract_headers_advanced(df)
+        
+        # Étape 2: Trouve le split avec récupération si nécessaire
+        split_row = self._find_fio2_100_split(df)
+        
+        if split_row is None and pdf_path and pdfplumber is not None:
+            # Tentative de récupération de la suite tronquée
+            self.log("Split FiO2=100 introuvable — tentative de récupération via pdfplumber", level=logging.INFO)
+            
+            try:            
+                tail_df = self._recover_fio2_tail_same_page(pdf_path, page_num)
+                if tail_df is not None and len(tail_df) > 0:
+                    # Recolle la suite
+                    combined_df = pd.concat([df, tail_df], ignore_index=True)
+                    
+                    # Relance avec la table complète
+                    return self._process_gds_table_advanced(combined_df, pdf_path, page_num)
+            
+            except Exception as e:
+                self.log(f"Erreur récupération: {e}", level=logging.ERROR)
+        
+        if split_row is None:
+            # Analyse mixte avancée
+            return self._process_mixed_section_advanced(df, headers)
+        
+        # Split trouvé, traite avec méthode avancée
+        return self._process_sections_with_advanced_extraction(df, headers, split_row)
+
+
+    def _extract_headers_advanced(self, df: pd.DataFrame) -> List[Dict[str, str]]:
+        """Version améliorée de l'extraction des headers."""
+        headers = []
+        
+        if self.debug:
+            print(f"   📅 Extraction headers avancée:")
+        
+        # Cherche spécifiquement les lignes avec plusieurs timestamps
+        for row_idx in range(min(6, len(df))):
+            row = df.iloc[row_idx]
+            row_text = ' '.join(str(cell) for cell in row if str(cell).strip())
+            
+            # Pattern pour plusieurs dates/heures dans une ligne
+            datetime_matches = re.findall(r'(\d{2}/\d{2}/\d{4})\s+(\d{2}:\d{2})', row_text)
+            
+            if len(datetime_matches) >= 2:
+                if self.debug:
+                    print(f"      📅 Ligne timestamps trouvée {row_idx}: {row_text}")
+                
+                for i, (date, time) in enumerate(datetime_matches):
+                    col_idx = i + 1  # Colonne 0 = labels
+                    if col_idx < len(df.columns):
+                        headers.append({
+                            'column_index': col_idx,
+                            'date': date,
+                            'time': time
+                        })
+                break
+        
+        # Fallback vers méthode standard si besoin
+        if not headers:
+            headers = self._extract_headers(df)
+        
+        return headers
+
+
+    def _process_sections_with_advanced_extraction(self, df: pd.DataFrame, headers: List[Dict], split_row: int) -> Dict[str, Any]:
+        """Traite les sections avec extraction avancée des paramètres."""
+        
+        fio2_less_100_df = df.iloc[:split_row].copy()
+        fio2_100_df = df.iloc[split_row:].copy()
+        
+        all_data = []
+        
+        # Traite FiO2<100 avec méthode standard
+        if len(fio2_less_100_df) > 0:
+            fio2_less_100_clean, fio2_less_100_headers = self._remove_empty_columns_per_section(
+                fio2_less_100_df, headers, "FiO2<100"
+            )
+            fio2_less_100_data = self._extract_section_data_smart(
+                fio2_less_100_clean, fio2_less_100_headers, "FiO2<100"
+            )
+            all_data.extend(fio2_less_100_data)
+        
+        # Traite FiO2=100 avec méthode avancée
+        if len(fio2_100_df) > 0:
+            fio2_100_clean, fio2_100_headers = self._remove_empty_columns_per_section(
+                fio2_100_df, headers, "FiO2=100"
+            )
+            
+            # Utilise la méthode avancée pour FiO2=100
+            fio2_100_data = self._extract_section_data_with_offset(
+                fio2_100_clean, fio2_100_headers, "FiO2=100", index_offset=split_row
+            )
+            all_data.extend(fio2_100_data)
+        
+        if all_data:
+            return self._select_best_data_smart(all_data)
+        else:
+            return {}
+
+
+    def _process_mixed_section_advanced(self, df: pd.DataFrame, headers: List[Dict]) -> Dict[str, Any]:
+        """Analyse mixte avancée pour les cas sans split."""
+        
+        if self.debug:
+            print("   🔄 Analyse mixte avancée")
+        
+        # Nettoie les colonnes vides
+        df_clean, clean_headers = self._remove_empty_columns_per_section(df, headers, "Mixte")
+        
+        all_data = []
+        
+        # Analyse chaque colonne individuellement avec méthode avancée
+        for header in clean_headers:
+            col_idx = header['column_index']
+            timestamp = f"{header['date']} {header['time']}".strip()
+            
+            if self.debug:
+                print(f"   📊 Analyse avancée colonne {col_idx} ({timestamp})")
+            
+            # Détermine le type avec méthode avancée
+            column_type, fio2_percentage = self._analyze_column_type_advanced(df_clean, col_idx)
+            
+            if column_type and fio2_percentage:
+                # Extrait avec méthode avancée
+                column_data = self._extract_column_data_advanced(
+                    df_clean, col_idx, timestamp, column_type, fio2_percentage
+                )
+                
+                if column_data:
+                    all_data.append(column_data)
+        
+        if all_data:
+            return self._select_best_data_smart(all_data)
+        else:
+            return {}
+
+
+    def _analyze_column_type_advanced(self, df: pd.DataFrame, col_idx: int) -> Tuple[Optional[str], Optional[float]]:
+        """Analyse de colonne avec détection directe des paramètres."""
+        
+        # Compte les valeurs avec détection directe pH dans la même ligne
+        param_detections = {
+            'pH': r'ph.*([67]\.\d{2})',
+            'PaCO2': r'paco2.*(\d+(?:\.\d+)?)\s*mmhg',
+            'PaO2': r'pao2.*(\d+(?:\.\d+)?)\s*mmhg',
+        }
+        
+        medical_params_found = 0
+        has_percentage = False
+        found_percentage = None
+        max_pao2 = 0
+        
+        for row_idx, row in df.iterrows():
+            if col_idx < len(row):
+                cell_value = str(row.iloc[col_idx]).strip()
+                row_text = ' '.join(str(c) for c in row if str(c).strip()).lower()
+                
+                # Cherche des paramètres médicaux directement
+                for param_name, pattern in param_detections.items():
+                    if re.search(pattern, row_text):
+                        medical_params_found += 1
+                
+                # Cherche des pourcentages FiO2
+                percentage_match = re.search(r'(\d+)\s*%', cell_value)
+                if percentage_match and 'fio2' in row_text:
+                    found_percentage = float(percentage_match.group(1))
+                    has_percentage = True
+                
+                # Cherche PaO2 pour déduction
+                if 'pao2' in row_text:
+                    pao2_match = re.search(r'(\d+(?:\.\d+)?)', cell_value)
+                    if pao2_match:
+                        max_pao2 = max(max_pao2, float(pao2_match.group(1)))
+        
+        if medical_params_found >= 2:
+            if has_percentage:
+                if found_percentage < 100:
+                    return "FiO2<100", found_percentage
+                else:
+                    return "FiO2=100", found_percentage
+            else:
+                # Déduit du PaO2
+                if max_pao2 > 300:
+                    return "FiO2=100", 100.0
+                else:
+                    return "FiO2<100", 21.0
+        
+        return None, None
+
+
+    def _extract_column_data_advanced(self, df: pd.DataFrame, col_idx: int, timestamp: str, 
+                                    fio2_type: str, fio2_percentage: float) -> Optional[Dict[str, Any]]:
+        """Extraction avancée avec détection directe des paramètres."""
+        
+        # Utilise la détection directe des paramètres
+        param_rows_advanced = self._find_medical_parameter_rows_direct(df)
+        
+        data_entry = {
+            'timestamp': timestamp,
+            'fio2_type': fio2_type,
+            'fio2_percentage': fio2_percentage,
+            'column_index': col_idx
+        }
+        
+        extracted_params = []
+        
+        for param_name, row_idx in param_rows_advanced.items():
+            if row_idx < len(df) and col_idx < len(df.columns):
+                numeric_value = self._extract_parameter_value_from_row(
+                    df, row_idx, col_idx, param_name
+                )
+                
+                if numeric_value is not None:
+                    data_entry[param_name] = numeric_value
+                    extracted_params.append(param_name)
+        
+        if len(extracted_params) >= 3:
+            return data_entry
+        else:
+            return None
+
+
+    def _find_medical_parameter_rows_direct(self, df: pd.DataFrame) -> Dict[str, int]:
+        """Détection directe des paramètres avec leurs valeurs."""
+        
+        param_rows = {}
+        
+        # Patterns pour détection directe
+        param_detections = {
+            'pH': r'ph.*([67]\.\d{2})',
+            'PaCO2': r'paco2.*(\d+(?:\.\d+)?)\s*mmhg',
+            'PaO2': r'pao2.*(\d+(?:\.\d+)?)\s*mmhg',
+            'SaO2': r'sao2.*(\d+(?:\.\d+)?)\s*%',
+            'CO3H': r'co3h.*(\d+(?:\.\d+)?)\s*mmol',
+            'PEEP': r'peep.*(\d+(?:\.\d+)?)\s*cm'
+        }
+        
+        for local_idx in range(len(df)):
+            row = df.iloc[local_idx]
+            row_text = ' '.join(str(cell) for cell in row if str(cell).strip()).lower()
+            
+            for param_name, pattern in param_detections.items():
+                if param_name not in param_rows and re.search(pattern, row_text):
+                    param_rows[param_name] = local_idx
+        
+        return param_rows
