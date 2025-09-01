@@ -237,7 +237,6 @@ ALL_PATTERNS = {
     "bilan_hemodynamique": BILAN_HEMODYNAMIQUE_PATTERNS,
     "evolution_hemodynamique": EVOLUTION_HEMODYNAMIQUE_PATTERNS,
     "bilan_pulmonaire": BILAN_PULMONAIRE_PATTERNS,
-
     "bilan_cardiaque_morphologique": BILAN_CARDIAQUE_PATTERNS,
     "thorax": THORAX_PATTERNS,
 }

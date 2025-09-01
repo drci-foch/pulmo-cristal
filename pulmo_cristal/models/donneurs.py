@@ -218,6 +218,45 @@ class AntecedentsData:
 
 
 @dataclass
+class BilanPulmonaireData:
+    """Pulmonary assessment data."""
+
+    traumatise_broncho_pulmonaire_actuel: Optional[BooleanValue] = None
+    lesion_pleurale_traumatique_actuelle: Optional[BooleanValue] = None
+    radiographie_thoraco_pulmonaire: str = ""
+    aspirations_tracheo_bronchiques: str = ""
+    prelevement_bacteriologique: Optional[BooleanValue] = None
+    fibroscopie_bronchique: Optional[BooleanValue] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, str]) -> "BilanPulmonaireData":
+        """Create a BilanPulmonaireData object from a dictionary."""
+        result = cls()
+
+        # Handle potential naming inconsistencies
+        mapping = {
+            "radiographie_thoraco-pulmonaire": "radiographie_thoraco_pulmonaire",
+            "aspirations trachéo-bronchiques": "aspirations_tracheo_bronchiques",
+        }
+
+        for field_name, field_value in data.items():
+            # Map alternative field names
+            if field_name in mapping:
+                field_name = mapping[field_name]
+
+            if hasattr(result, field_name):
+                if field_name in [
+                    "radiographie_thoraco_pulmonaire",
+                    "aspirations_tracheo_bronchiques",
+                ]:
+                    setattr(result, field_name, str(field_value).strip())
+                else:
+                    setattr(result, field_name, BooleanValue.from_string(field_value))
+
+        return result
+
+
+@dataclass
 class BilanInfectieuxData:
     """Infectious disease assessment data."""
 
@@ -434,6 +473,7 @@ class Donneur:
     bilan_infectieux: Optional[BilanInfectieuxData] = None
     bilan_hemodynamique: Optional[BilanHemodynamiqueData] = None
     evolution_hemodynamique: Optional[EvolutionHemodynamiqueData] = None
+    bilan_pulmonaire: Optional[BilanPulmonaireData] = None
     gds: Optional[GDSData] = None
     bilan_cardiaque_morphologique: Optional[BilanCardiaqueData] = None
     thorax: Optional[ThoraxData] = None
@@ -589,6 +629,10 @@ class Donneur:
                     setattr(gds_data, key, value)
             donneur.gds = gds_data
 
+        if "bilan_pulmonaire" in data:
+            donneur.bilan_pulmonaire = BilanPulmonaireData.from_dict(
+                data["bilan_pulmonaire"]
+            )
 
         # Validate the donor data
         donneur.validate()

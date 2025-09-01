@@ -285,6 +285,7 @@ class DonorPDFExtractor(PDFExtractor):
             "bilan_infectieux": r"Bilan infectieux",
             "bilan_hemodynamique": r"Bilan hémodynamique",
             "evolution_hemodynamique": r"Evolution hémodynamique",
+            "bilan_pulmonaire": r"Bilan pulmonaire",
             "bilan_cardiaque": r"Bilan cardiaque",
         }
 
@@ -323,6 +324,7 @@ class DonorPDFExtractor(PDFExtractor):
             "antecedents",
             "bilan_infectieux",
             "bilan_hemodynamique",
+            "bilan_pulmonaire",
             "bilan_cardiaque_morphologique",
             "thorax"
         ]
